@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="./css/styles.css">
 
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11" defer></script>
+  <script src="https://unpkg.com/html5-qrcode" defer></script>
   <script src="./js/main.js" defer></script>
 </head>
 
@@ -24,11 +25,61 @@
   </header>
 
   <main class="contenedor">
-    <section class="panel">
+
+    <section id="seccionAuth" class="panel auth-panel">
+      <h2>Acceso al sistema</h2>
+
+      <div class="auth-contenedor">
+        <form id="formLogin" class="formulario-auth">
+          <h3>Iniciar sesión</h3>
+
+          <input type="email" id="loginEmail" placeholder="Email" required>
+          <input type="password" id="loginPassword" placeholder="Contraseña" required>
+
+          <button type="submit">Ingresar</button>
+        </form>
+
+        <form id="formRegistro" class="formulario-auth">
+          <h3>Registrar sucursal</h3>
+
+          <input type="text" id="registroNombre" placeholder="Nombre del usuario" required>
+          <input type="email" id="registroEmail" placeholder="Email" required>
+          <input type="password" id="registroPassword" placeholder="Contraseña" required>
+          <input type="text" id="registroSucursal" placeholder="Nombre de la sucursal" required>
+          <input type="text" id="registroDireccion" placeholder="Dirección de la sucursal">
+
+          <button type="submit">Registrarse</button>
+        </form>
+      </div>
+    </section>
+
+    <section id="seccionUsuario" class="panel usuario-panel oculto">
+      <div>
+        <h2 id="nombreUsuario">Usuario</h2>
+        <p id="nombreSucursal">Sucursal</p>
+      </div>
+
+      <button id="btnCerrarSesion" class="btn-cerrar" type="button">
+        Cerrar sesión
+      </button>
+    </section>
+
+    <section class="panel seccion-app oculto">
       <h2>Agregar producto</h2>
 
       <form id="formProducto" class="formulario">
         <input type="text" id="nombre" placeholder="Nombre del producto" required>
+        <input
+  type="text"
+  id="codigoBarras"
+  placeholder="EAN / Código EAN-13"
+/>
+
+<button id="btnEscanear" type="button">
+  📷 Escanear EAN
+</button>
+
+<div id="lectorCodigo" class="lector oculto"></div>
 
         <select id="categoria" required>
           <option value="">Seleccionar categoría</option>
@@ -47,7 +98,7 @@
       </form>
     </section>
 
-    <section class="panel">
+    <section class="panel seccion-app oculto">
       <h2>Buscar y filtrar</h2>
 
       <div class="filtros">
@@ -82,7 +133,7 @@
       </div>
     </section>
 
-    <section class="resumen">
+    <section class="resumen seccion-app oculto">
       <article>
         <span id="totalProductos">0</span>
         <p>Total productos</p>
@@ -99,7 +150,7 @@
       </article>
     </section>
 
-    <section class="panel">
+    <section class="panel seccion-app oculto">
       <h2>Listado de productos</h2>
 
       <div id="contenedorProductos" class="productos">
@@ -109,7 +160,7 @@
   </main>
 
   <footer class="footer">
-    <p>Proyecto Final JavaScript | StockAlert</p>
+    <p>1.0 | StockAlert</p>
   </footer>
 </body>
 </html>

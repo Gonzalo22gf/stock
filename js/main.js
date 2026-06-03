@@ -1,10 +1,15 @@
 const API_URL = "https://stockalert-api.onrender.com";
 
-const USUARIO_DEMO = {
-  nombre: "Tienda Carrefour Demo",
-  email: "tienda.demo@stockalert.com",
-  password: "StockAlert2026"
-};
+const seccionAuth = document.querySelector("#seccionAuth");
+const seccionUsuario = document.querySelector("#seccionUsuario");
+const seccionesApp = document.querySelectorAll(".seccion-app");
+
+const formLogin = document.querySelector("#formLogin");
+const formRegistro = document.querySelector("#formRegistro");
+const btnCerrarSesion = document.querySelector("#btnCerrarSesion");
+
+const nombreUsuario = document.querySelector("#nombreUsuario");
+const nombreSucursal = document.querySelector("#nombreSucursal");
 
 const filtroCategoria = document.querySelector("#filtroCategoria");
 const contenedorProductos = document.querySelector("#contenedorProductos");
@@ -18,22 +23,258 @@ const btnLimpiarFiltros = document.querySelector("#btnLimpiarFiltros");
 const totalProductos = document.querySelector("#totalProductos");
 const productosPorVencer = document.querySelector("#productosPorVencer");
 const productosVencidos = document.querySelector("#productosVencidos");
+const codigoBarrasInput = document.querySelector("#codigoBarras");
+const btnEscanear = document.querySelector("#btnEscanear");
+const lectorCodigo = document.querySelector("#lectorCodigo");
+
+let escanerActivo = false;
+let html5QrCode = null;
 
 let productos = [];
 let token = localStorage.getItem("tokenStockAlert") || "";
+let usuarioActivo = JSON.parse(localStorage.getItem("usuarioStockAlert")) || null;
 
 document.addEventListener("DOMContentLoaded", iniciarApp);
 
 async function iniciarApp() {
-  aplicarModoGuardado();
+  btnEscanear?.addEventListener("click", iniciarEscaner);
+
+async function iniciarEscaner() {
+  if (escanerActivo) {
+    await detenerEscaner();
+    return;
+  }
+
+  lectorCodigo.classList.remove("oculto");
+
+  html5QrCode = new Html5Qrcode("lectorCodigo");
 
   try {
-    await asegurarUsuarioDemo();
+    await html5QrCode.start(
+      { facingMode: "environment" },
+      {
+        fps: 10,
+        qrbox: {
+          width: 250,
+          height: 120
+        }
+      },
+      async (codigoDetectado) => {
+        codigoBarrasInput.value = codigoDetectado;
+
+        await detenerEscaner();
+
+        Swal.fire({
+          icon: "success",
+          title: "EAN detectado",
+          text: codigoDetectado,
+          timer: 1500,
+          showConfirmButton: false
+        });
+      }
+    );
+
+    escanerActivo = true;
+    btnEscanear.textContent = "Detener escáner";
+  } catch (error) {
+    Swal.fire({
+      icon: "error",
+      title: "Error de cámara",
+      text: "No se pudo acceder a la cámara."
+    });
+  }
+}
+
+async function detenerEscaner() {
+  if (html5QrCode && escanerActivo) {
+    await html5QrCode.stop();
+    await html5QrCode.clear();
+  }
+
+  lectorCodigo.classList.add("oculto");
+
+  escanerActivo = false;
+  html5QrCode = null;
+
+  btnEscanear.textContent = "📷 Escanear EAN";
+}
+  aplicarModoGuardado();
+
+  if (token && usuarioActivo) {
+    mostrarApp();
+    await cargarProductosAPI();
+  } else {
+    mostrarAuth();
+  }
+}
+
+function mostrarAuth() {
+  seccionAuth.classList.remove("oculto");
+  seccionUsuario.classList.add("oculto");
+
+  seccionesApp.forEach((seccion) => {
+    seccion.classList.add("oculto");
+  });
+}
+
+function mostrarApp() {
+  seccionAuth.classList.add("oculto");
+  seccionUsuario.classList.remove("oculto");
+
+  seccionesApp.forEach((seccion) => {
+    seccion.classList.remove("oculto");
+  });
+
+  nombreUsuario.textContent = usuarioActivo.nombre;
+  nombreSucursal.textContent = `Sucursal: ${usuarioActivo.sucursal?.nombre || "Sin sucursal"}`;
+}
+
+formRegistro.addEventListener("submit", registrarUsuario);
+
+async function registrarUsuario(e) {
+  e.preventDefault();
+
+  const nuevoUsuario = {
+    nombre: document.querySelector("#registroNombre").value.trim(),
+    email: document.querySelector("#registroEmail").value.trim(),
+    password: document.querySelector("#registroPassword").value.trim(),
+    nombreSucursal: document.querySelector("#registroSucursal").value.trim(),
+    direccionSucursal: document.querySelector("#registroDireccion").value.trim()
+  };
+
+  try {
+    const respuesta = await fetch(`${API_URL}/api/usuarios/registro`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(nuevoUsuario)
+    });
+
+    const data = await respuesta.json();
+
+    if (!respuesta.ok) {
+      throw new Error(data.mensaje || "Error al registrar usuario");
+    }
+
+    guardarSesion(data);
+    formRegistro.reset();
+    mostrarApp();
     await cargarProductosAPI();
 
-    if (productos.length === 0) {
-      await cargarProductosIniciales();
+    Swal.fire({
+      icon: "success",
+      title: "Sucursal registrada",
+      text: "El usuario fue creado correctamente.",
+      timer: 1800,
+      showConfirmButton: false
+    });
+  } catch (error) {
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: error.message
+    });
+  }
+}
+
+formLogin.addEventListener("submit", iniciarSesion);
+
+async function iniciarSesion(e) {
+  e.preventDefault();
+
+  const datosLogin = {
+    email: document.querySelector("#loginEmail").value.trim(),
+    password: document.querySelector("#loginPassword").value.trim()
+  };
+
+  try {
+    const respuesta = await fetch(`${API_URL}/api/usuarios/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(datosLogin)
+    });
+
+    const data = await respuesta.json();
+
+    if (!respuesta.ok) {
+      throw new Error(data.mensaje || "Error al iniciar sesión");
     }
+
+    guardarSesion(data);
+    formLogin.reset();
+    mostrarApp();
+    await cargarProductosAPI();
+
+    Swal.fire({
+      icon: "success",
+      title: "Bienvenido",
+      text: `Ingresaste como ${data.nombre}`,
+      timer: 1600,
+      showConfirmButton: false
+    });
+  } catch (error) {
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: error.message
+    });
+  }
+}
+
+function guardarSesion(data) {
+  token = data.token;
+  usuarioActivo = {
+    _id: data._id,
+    nombre: data.nombre,
+    email: data.email,
+    rol: data.rol,
+    sucursal: data.sucursal
+  };
+
+  localStorage.setItem("tokenStockAlert", token);
+  localStorage.setItem("usuarioStockAlert", JSON.stringify(usuarioActivo));
+}
+
+btnCerrarSesion.addEventListener("click", cerrarSesion);
+
+function cerrarSesion() {
+  token = "";
+  usuarioActivo = null;
+  productos = [];
+
+  localStorage.removeItem("tokenStockAlert");
+  localStorage.removeItem("usuarioStockAlert");
+
+  renderizarProductos([]);
+  actualizarResumen([]);
+  mostrarAuth();
+
+  Swal.fire({
+    icon: "success",
+    title: "Sesión cerrada",
+    timer: 1200,
+    showConfirmButton: false
+  });
+}
+
+async function cargarProductosAPI() {
+  try {
+    const respuesta = await fetch(`${API_URL}/api/productos`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+
+    const data = await respuesta.json();
+
+    if (!respuesta.ok) {
+      throw new Error(data.mensaje || "Error al cargar productos");
+    }
+
+    productos = data.map(normalizarProducto);
 
     renderizarProductos(productos);
     actualizarResumen(productos);
@@ -42,89 +283,7 @@ async function iniciarApp() {
     Swal.fire({
       icon: "error",
       title: "Error de conexión",
-      text: "No se pudo conectar con la base de datos online."
-    });
-  }
-}
-
-async function asegurarUsuarioDemo() {
-  if (token) return;
-
-  try {
-    await fetch(`${API_URL}/api/usuarios/registro`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(USUARIO_DEMO)
-    });
-  } catch (error) {}
-
-  const respuesta = await fetch(`${API_URL}/api/usuarios/login`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      email: USUARIO_DEMO.email,
-      password: USUARIO_DEMO.password
-    })
-  });
-
-  const data = await respuesta.json();
-
-  if (!respuesta.ok) {
-    throw new Error(data.mensaje || "Error al iniciar sesión");
-  }
-
-  token = data.token;
-  localStorage.setItem("tokenStockAlert", token);
-}
-
-async function cargarProductosAPI() {
-  const respuesta = await fetch(`${API_URL}/api/productos`, {
-    headers: {
-      Authorization: `Bearer ${token}`
-    }
-  });
-
-  const data = await respuesta.json();
-
-  if (!respuesta.ok) {
-    throw new Error(data.mensaje || "Error al cargar productos");
-  }
-
-  productos = data.map(normalizarProducto);
-}
-
-async function cargarProductosIniciales() {
-  try {
-    const respuesta = await fetch("./data/productos.json");
-    const data = await respuesta.json();
-
-    for (const producto of data) {
-      await fetch(`${API_URL}/api/productos`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          nombre: producto.nombre,
-          categoria: producto.categoria,
-          stock: producto.stock,
-          precio: producto.precio,
-          vencimiento: producto.vencimiento
-        })
-      });
-    }
-
-    await cargarProductosAPI();
-  } catch (error) {
-    Swal.fire({
-      icon: "error",
-      title: "Error",
-      text: "No se pudieron cargar los productos iniciales"
+      text: "No se pudieron cargar los productos de la sucursal."
     });
   }
 }
@@ -158,6 +317,7 @@ function renderizarProductos(listaProductos) {
       <p><strong>Categoría:</strong> ${producto.categoria}</p>
       <p><strong>Stock:</strong> ${producto.stock}</p>
       <p><strong>Precio:</strong> $${producto.precio}</p>
+      <p><strong>EAN:</strong> ${producto.codigoBarras || "Sin EAN"}</p>
       <p><strong>Vencimiento:</strong> ${formatearFecha(producto.vencimiento)}</p>
       <span class="estado ${estado.clase}">${estado.texto}</span>
 
@@ -217,6 +377,7 @@ async function agregarProducto(e) {
   const stock = Number(document.querySelector("#stock").value);
   const precio = Number(document.querySelector("#precio").value);
   const vencimiento = document.querySelector("#vencimiento").value;
+  const codigoBarras = codigoBarrasInput.value.trim();
 
   if (!nombre || !categoria || stock <= 0 || precio <= 0 || !vencimiento) {
     Swal.fire({
@@ -229,12 +390,13 @@ async function agregarProducto(e) {
   }
 
   const nuevoProducto = {
-    nombre,
-    categoria,
-    stock,
-    precio,
-    vencimiento
-  };
+  nombre,
+  categoria,
+  stock,
+  precio,
+  vencimiento,
+  codigoBarras
+};
 
   try {
     const respuesta = await fetch(`${API_URL}/api/productos`, {
@@ -259,7 +421,7 @@ async function agregarProducto(e) {
     Swal.fire({
       icon: "success",
       title: "Producto agregado",
-      text: "El producto fue guardado en la base de datos.",
+      text: "El producto fue guardado en la sucursal.",
       timer: 1800,
       showConfirmButton: false
     });
@@ -341,12 +503,7 @@ function editarProducto(idProducto) {
   Swal.fire({
     title: "Editar producto",
     html: `
-      <input
-        id="editarNombre"
-        class="swal2-input"
-        placeholder="Nombre del producto"
-        value="${productoEncontrado.nombre}"
-      >
+      <input id="editarNombre" class="swal2-input" placeholder="Nombre del producto" value="${productoEncontrado.nombre}">
 
       <select id="editarCategoria" class="swal2-input">
         <option value="Lácteos">Lácteos</option>
@@ -356,28 +513,9 @@ function editarProducto(idProducto) {
         <option value="Congelados">Congelados</option>
       </select>
 
-      <input
-        id="editarStock"
-        type="number"
-        class="swal2-input"
-        placeholder="Stock"
-        value="${productoEncontrado.stock}"
-      >
-
-      <input
-        id="editarPrecio"
-        type="number"
-        class="swal2-input"
-        placeholder="Precio"
-        value="${productoEncontrado.precio}"
-      >
-
-      <input
-        id="editarVencimiento"
-        type="date"
-        class="swal2-input"
-        value="${productoEncontrado.vencimiento}"
-      >
+      <input id="editarStock" type="number" class="swal2-input" placeholder="Stock" value="${productoEncontrado.stock}">
+      <input id="editarPrecio" type="number" class="swal2-input" placeholder="Precio" value="${productoEncontrado.precio}">
+      <input id="editarVencimiento" type="date" class="swal2-input" value="${productoEncontrado.vencimiento}">
     `,
     showCancelButton: true,
     confirmButtonText: "Guardar cambios",
@@ -549,14 +687,9 @@ function mostrarAlertasVencimiento() {
   if (productosVencidosLista.length > 0) {
     html += `
       <div style="margin-bottom:20px; text-align:left;">
-        <h3 style="color:#d90429;">
-          Productos vencidos (${productosVencidosLista.length})
-        </h3>
-
+        <h3 style="color:#d90429;">Productos vencidos (${productosVencidosLista.length})</h3>
         <ul style="padding-left:20px;">
-          ${productosVencidosLista
-            .map((producto) => `<li>${producto.nombre}</li>`)
-            .join("")}
+          ${productosVencidosLista.map((producto) => `<li>${producto.nombre}</li>`).join("")}
         </ul>
       </div>
     `;
@@ -565,14 +698,9 @@ function mostrarAlertasVencimiento() {
   if (productosPorVencerLista.length > 0) {
     html += `
       <div style="text-align:left;">
-        <h3 style="color:#f4a261;">
-          Productos por vencer (${productosPorVencerLista.length})
-        </h3>
-
+        <h3 style="color:#f4a261;">Productos por vencer (${productosPorVencerLista.length})</h3>
         <ul style="padding-left:20px;">
-          ${productosPorVencerLista
-            .map((producto) => `<li>${producto.nombre}</li>`)
-            .join("")}
+          ${productosPorVencerLista.map((producto) => `<li>${producto.nombre}</li>`).join("")}
         </ul>
       </div>
     `;
