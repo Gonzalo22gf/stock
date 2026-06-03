@@ -539,3 +539,31 @@ body {
 #btnEscanear:hover {
   transform: translateY(-2px);
 }
+/* =========================
+   RESPONSIVE MOBILE
+========================= */
+
+@media (max-width: 480px) {
+  .contenedor {
+    width: 94%;
+    margin: 20px auto;
+  }
+
+  .panel {
+    padding: 18px;
+  }
+
+  .formulario-auth {
+    padding: 16px;
+  }
+
+  .formulario-auth h3 {
+    font-size: 1.3rem;
+  }
+
+  .formulario-auth input,
+  .formulario-auth button {
+    font-size: 0.95rem;
+    padding: 11px;
+  }
+}
