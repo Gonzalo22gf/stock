@@ -1,3 +1,11 @@
+const API_URL = "https://stockalert-api.onrender.com";
+
+const USUARIO_DEMO = {
+  nombre: "Tienda Carrefour Demo",
+  email: "tienda.demo@stockalert.com",
+  password: "StockAlert2026"
+};
+
 const filtroCategoria = document.querySelector("#filtroCategoria");
 const contenedorProductos = document.querySelector("#contenedorProductos");
 const formProducto = document.querySelector("#formProducto");
@@ -12,30 +20,106 @@ const productosPorVencer = document.querySelector("#productosPorVencer");
 const productosVencidos = document.querySelector("#productosVencidos");
 
 let productos = [];
+let token = localStorage.getItem("tokenStockAlert") || "";
 
 document.addEventListener("DOMContentLoaded", iniciarApp);
 
 async function iniciarApp() {
   aplicarModoGuardado();
 
-  productos = obtenerProductosStorage();
+  try {
+    await asegurarUsuarioDemo();
+    await cargarProductosAPI();
 
-  if (productos.length === 0) {
-    await cargarProductosJSON();
+    if (productos.length === 0) {
+      await cargarProductosIniciales();
+    }
+
+    renderizarProductos(productos);
+    actualizarResumen(productos);
+    mostrarAlertasVencimiento();
+  } catch (error) {
+    Swal.fire({
+      icon: "error",
+      title: "Error de conexión",
+      text: "No se pudo conectar con la base de datos online."
+    });
   }
-
-  renderizarProductos(productos);
-  actualizarResumen(productos);
-  mostrarAlertasVencimiento();
 }
 
-async function cargarProductosJSON() {
+async function asegurarUsuarioDemo() {
+  if (token) return;
+
+  try {
+    await fetch(`${API_URL}/api/usuarios/registro`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(USUARIO_DEMO)
+    });
+  } catch (error) {}
+
+  const respuesta = await fetch(`${API_URL}/api/usuarios/login`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      email: USUARIO_DEMO.email,
+      password: USUARIO_DEMO.password
+    })
+  });
+
+  const data = await respuesta.json();
+
+  if (!respuesta.ok) {
+    throw new Error(data.mensaje || "Error al iniciar sesión");
+  }
+
+  token = data.token;
+  localStorage.setItem("tokenStockAlert", token);
+}
+
+async function cargarProductosAPI() {
+  const respuesta = await fetch(`${API_URL}/api/productos`, {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  });
+
+  const data = await respuesta.json();
+
+  if (!respuesta.ok) {
+    throw new Error(data.mensaje || "Error al cargar productos");
+  }
+
+  productos = data.map(normalizarProducto);
+}
+
+async function cargarProductosIniciales() {
   try {
     const respuesta = await fetch("./data/productos.json");
     const data = await respuesta.json();
 
-    productos = data;
-    guardarProductosStorage();
+    for (const producto of data) {
+      await fetch(`${API_URL}/api/productos`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          nombre: producto.nombre,
+          categoria: producto.categoria,
+          stock: producto.stock,
+          precio: producto.precio,
+          vencimiento: producto.vencimiento
+        })
+      });
+    }
+
+    await cargarProductosAPI();
   } catch (error) {
     Swal.fire({
       icon: "error",
@@ -43,6 +127,14 @@ async function cargarProductosJSON() {
       text: "No se pudieron cargar los productos iniciales"
     });
   }
+}
+
+function normalizarProducto(producto) {
+  return {
+    ...producto,
+    id: producto._id || producto.id,
+    vencimiento: producto.vencimiento?.split("T")[0] || producto.vencimiento
+  };
 }
 
 function renderizarProductos(listaProductos) {
@@ -117,7 +209,7 @@ function formatearFecha(fecha) {
 
 formProducto.addEventListener("submit", agregarProducto);
 
-function agregarProducto(e) {
+async function agregarProducto(e) {
   e.preventDefault();
 
   const nombre = document.querySelector("#nombre").value.trim();
@@ -137,7 +229,6 @@ function agregarProducto(e) {
   }
 
   const nuevoProducto = {
-    id: Date.now(),
     nombre,
     categoria,
     stock,
@@ -145,24 +236,46 @@ function agregarProducto(e) {
     vencimiento
   };
 
-  productos.push(nuevoProducto);
-  guardarProductosStorage();
-  aplicarFiltros();
-  formProducto.reset();
+  try {
+    const respuesta = await fetch(`${API_URL}/api/productos`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify(nuevoProducto)
+    });
 
-  Swal.fire({
-    icon: "success",
-    title: "Producto agregado",
-    text: "El producto fue cargado correctamente.",
-    timer: 1800,
-    showConfirmButton: false
-  });
+    const data = await respuesta.json();
+
+    if (!respuesta.ok) {
+      throw new Error(data.mensaje || "Error al agregar producto");
+    }
+
+    productos.push(normalizarProducto(data));
+    aplicarFiltros();
+    formProducto.reset();
+
+    Swal.fire({
+      icon: "success",
+      title: "Producto agregado",
+      text: "El producto fue guardado en la base de datos.",
+      timer: 1800,
+      showConfirmButton: false
+    });
+  } catch (error) {
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: "No se pudo agregar el producto."
+    });
+  }
 }
 
 contenedorProductos.addEventListener("click", manejarBotonesProductos);
 
 function manejarBotonesProductos(e) {
-  const idProducto = Number(e.target.dataset.id);
+  const idProducto = e.target.dataset.id;
 
   if (e.target.classList.contains("btn-eliminar")) {
     eliminarProducto(idProducto);
@@ -173,7 +286,7 @@ function manejarBotonesProductos(e) {
   }
 }
 
-function eliminarProducto(idProducto) {
+async function eliminarProducto(idProducto) {
   Swal.fire({
     title: "¿Eliminar producto?",
     text: "Esta acción no se puede deshacer.",
@@ -181,20 +294,39 @@ function eliminarProducto(idProducto) {
     showCancelButton: true,
     confirmButtonText: "Sí, eliminar",
     cancelButtonText: "Cancelar"
-  }).then((resultado) => {
+  }).then(async (resultado) => {
     if (resultado.isConfirmed) {
-      productos = productos.filter((producto) => producto.id !== idProducto);
+      try {
+        const respuesta = await fetch(`${API_URL}/api/productos/${idProducto}`, {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
 
-      guardarProductosStorage();
-      aplicarFiltros();
+        const data = await respuesta.json();
 
-      Swal.fire({
-        icon: "success",
-        title: "Eliminado",
-        text: "El producto fue eliminado.",
-        timer: 1600,
-        showConfirmButton: false
-      });
+        if (!respuesta.ok) {
+          throw new Error(data.mensaje || "Error al eliminar producto");
+        }
+
+        productos = productos.filter((producto) => producto.id !== idProducto);
+        aplicarFiltros();
+
+        Swal.fire({
+          icon: "success",
+          title: "Eliminado",
+          text: "El producto fue eliminado.",
+          timer: 1600,
+          showConfirmButton: false
+        });
+      } catch (error) {
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "No se pudo eliminar el producto."
+        });
+      }
     }
   });
 }
@@ -203,6 +335,8 @@ function editarProducto(idProducto) {
   const productoEncontrado = productos.find(
     (producto) => producto.id === idProducto
   );
+
+  if (!productoEncontrado) return;
 
   Swal.fire({
     title: "Editar producto",
@@ -274,23 +408,43 @@ function editarProducto(idProducto) {
         vencimiento
       };
     }
-  }).then((resultado) => {
+  }).then(async (resultado) => {
     if (resultado.isConfirmed) {
-      productoEncontrado.nombre = resultado.value.nombre;
-      productoEncontrado.categoria = resultado.value.categoria;
-      productoEncontrado.stock = resultado.value.stock;
-      productoEncontrado.precio = resultado.value.precio;
-      productoEncontrado.vencimiento = resultado.value.vencimiento;
+      try {
+        const respuesta = await fetch(`${API_URL}/api/productos/${idProducto}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify(resultado.value)
+        });
 
-      guardarProductosStorage();
-      aplicarFiltros();
+        const data = await respuesta.json();
 
-      Swal.fire({
-        icon: "success",
-        title: "Producto actualizado",
-        timer: 1500,
-        showConfirmButton: false
-      });
+        if (!respuesta.ok) {
+          throw new Error(data.mensaje || "Error al actualizar producto");
+        }
+
+        productos = productos.map((producto) =>
+          producto.id === idProducto ? normalizarProducto(data) : producto
+        );
+
+        aplicarFiltros();
+
+        Swal.fire({
+          icon: "success",
+          title: "Producto actualizado",
+          timer: 1500,
+          showConfirmButton: false
+        });
+      } catch (error) {
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "No se pudo actualizar el producto."
+        });
+      }
     }
   });
 }
@@ -447,14 +601,4 @@ function aplicarModoGuardado() {
   if (modoOscuroActivo) {
     document.body.classList.add("modo-oscuro");
   }
-}
-
-function guardarProductosStorage() {
-  localStorage.setItem("productos", JSON.stringify(productos));
-}
-
-function obtenerProductosStorage() {
-  const productosStorage = localStorage.getItem("productos");
-
-  return productosStorage ? JSON.parse(productosStorage) : [];
 }
