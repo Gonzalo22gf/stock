@@ -23,81 +23,23 @@ const btnLimpiarFiltros = document.querySelector("#btnLimpiarFiltros");
 const totalProductos = document.querySelector("#totalProductos");
 const productosPorVencer = document.querySelector("#productosPorVencer");
 const productosVencidos = document.querySelector("#productosVencidos");
+
 const codigoBarrasInput = document.querySelector("#codigoBarras");
 const btnEscanear = document.querySelector("#btnEscanear");
 const lectorCodigo = document.querySelector("#lectorCodigo");
 
-let escanerActivo = false;
-let html5QrCode = null;
-
 let productos = [];
 let token = localStorage.getItem("tokenStockAlert") || "";
 let usuarioActivo = JSON.parse(localStorage.getItem("usuarioStockAlert")) || null;
+
+let escanerActivo = false;
+let html5QrCode = null;
 
 document.addEventListener("DOMContentLoaded", iniciarApp);
 
 async function iniciarApp() {
   btnEscanear?.addEventListener("click", iniciarEscaner);
 
-async function iniciarEscaner() {
-  if (escanerActivo) {
-    await detenerEscaner();
-    return;
-  }
-
-  lectorCodigo.classList.remove("oculto");
-
-  html5QrCode = new Html5Qrcode("lectorCodigo");
-
-  try {
-    await html5QrCode.start(
-      { facingMode: "environment" },
-      {
-        fps: 10,
-        qrbox: {
-          width: 250,
-          height: 120
-        }
-      },
-      async (codigoDetectado) => {
-        codigoBarrasInput.value = codigoDetectado;
-
-        await detenerEscaner();
-
-        Swal.fire({
-          icon: "success",
-          title: "EAN detectado",
-          text: codigoDetectado,
-          timer: 1500,
-          showConfirmButton: false
-        });
-      }
-    );
-
-    escanerActivo = true;
-    btnEscanear.textContent = "Detener escáner";
-  } catch (error) {
-    Swal.fire({
-      icon: "error",
-      title: "Error de cámara",
-      text: "No se pudo acceder a la cámara."
-    });
-  }
-}
-
-async function detenerEscaner() {
-  if (html5QrCode && escanerActivo) {
-    await html5QrCode.stop();
-    await html5QrCode.clear();
-  }
-
-  lectorCodigo.classList.add("oculto");
-
-  escanerActivo = false;
-  html5QrCode = null;
-
-  btnEscanear.textContent = "📷 Escanear EAN";
-}
   aplicarModoGuardado();
 
   if (token && usuarioActivo) {
@@ -126,7 +68,9 @@ function mostrarApp() {
   });
 
   nombreUsuario.textContent = usuarioActivo.nombre;
-  nombreSucursal.textContent = `Sucursal: ${usuarioActivo.sucursal?.nombre || "Sin sucursal"}`;
+  nombreSucursal.textContent = `Sucursal: ${
+    usuarioActivo.sucursal?.nombre || "Sin sucursal"
+  }`;
 }
 
 formRegistro.addEventListener("submit", registrarUsuario);
@@ -226,6 +170,7 @@ async function iniciarSesion(e) {
 
 function guardarSesion(data) {
   token = data.token;
+
   usuarioActivo = {
     _id: data._id,
     nombre: data.nombre,
@@ -390,13 +335,13 @@ async function agregarProducto(e) {
   }
 
   const nuevoProducto = {
-  nombre,
-  categoria,
-  stock,
-  precio,
-  vencimiento,
-  codigoBarras
-};
+    nombre,
+    categoria,
+    stock,
+    precio,
+    vencimiento,
+    codigoBarras
+  };
 
   try {
     const respuesta = await fetch(`${API_URL}/api/productos`, {
@@ -516,6 +461,7 @@ function editarProducto(idProducto) {
       <input id="editarStock" type="number" class="swal2-input" placeholder="Stock" value="${productoEncontrado.stock}">
       <input id="editarPrecio" type="number" class="swal2-input" placeholder="Precio" value="${productoEncontrado.precio}">
       <input id="editarVencimiento" type="date" class="swal2-input" value="${productoEncontrado.vencimiento}">
+      <input id="editarCodigoBarras" class="swal2-input" placeholder="EAN / Código EAN-13" value="${productoEncontrado.codigoBarras || ""}">
     `,
     showCancelButton: true,
     confirmButtonText: "Guardar cambios",
@@ -532,6 +478,9 @@ function editarProducto(idProducto) {
       const stock = Number(document.querySelector("#editarStock").value);
       const precio = Number(document.querySelector("#editarPrecio").value);
       const vencimiento = document.querySelector("#editarVencimiento").value;
+      const codigoBarras = document
+        .querySelector("#editarCodigoBarras")
+        .value.trim();
 
       if (!nombre || !categoria || stock <= 0 || precio <= 0 || !vencimiento) {
         Swal.showValidationMessage("Completá todos los campos correctamente");
@@ -543,7 +492,8 @@ function editarProducto(idProducto) {
         categoria,
         stock,
         precio,
-        vencimiento
+        vencimiento,
+        codigoBarras
       };
     }
   }).then(async (resultado) => {
@@ -689,7 +639,9 @@ function mostrarAlertasVencimiento() {
       <div style="margin-bottom:20px; text-align:left;">
         <h3 style="color:#d90429;">Productos vencidos (${productosVencidosLista.length})</h3>
         <ul style="padding-left:20px;">
-          ${productosVencidosLista.map((producto) => `<li>${producto.nombre}</li>`).join("")}
+          ${productosVencidosLista
+            .map((producto) => `<li>${producto.nombre}</li>`)
+            .join("")}
         </ul>
       </div>
     `;
@@ -700,7 +652,9 @@ function mostrarAlertasVencimiento() {
       <div style="text-align:left;">
         <h3 style="color:#f4a261;">Productos por vencer (${productosPorVencerLista.length})</h3>
         <ul style="padding-left:20px;">
-          ${productosPorVencerLista.map((producto) => `<li>${producto.nombre}</li>`).join("")}
+          ${productosPorVencerLista
+            .map((producto) => `<li>${producto.nombre}</li>`)
+            .join("")}
         </ul>
       </div>
     `;
@@ -729,4 +683,64 @@ function aplicarModoGuardado() {
   if (modoOscuroActivo) {
     document.body.classList.add("modo-oscuro");
   }
+}
+
+async function iniciarEscaner() {
+  if (escanerActivo) {
+    await detenerEscaner();
+    return;
+  }
+
+  lectorCodigo.classList.remove("oculto");
+
+  html5QrCode = new Html5Qrcode("lectorCodigo");
+
+  try {
+    await html5QrCode.start(
+      { facingMode: "environment" },
+      {
+        fps: 10,
+        qrbox: {
+          width: 250,
+          height: 120
+        }
+      },
+      async (codigoDetectado) => {
+        codigoBarrasInput.value = codigoDetectado;
+
+        await detenerEscaner();
+
+        Swal.fire({
+          icon: "success",
+          title: "EAN detectado",
+          text: codigoDetectado,
+          timer: 1500,
+          showConfirmButton: false
+        });
+      }
+    );
+
+    escanerActivo = true;
+    btnEscanear.textContent = "Detener escáner";
+  } catch (error) {
+    lectorCodigo.classList.add("oculto");
+
+    Swal.fire({
+      icon: "error",
+      title: "Error de cámara",
+      text: "No se pudo acceder a la cámara."
+    });
+  }
+}
+
+async function detenerEscaner() {
+  if (html5QrCode && escanerActivo) {
+    await html5QrCode.stop();
+    await html5QrCode.clear();
+  }
+
+  lectorCodigo.classList.add("oculto");
+  escanerActivo = false;
+  html5QrCode = null;
+  btnEscanear.textContent = "📷 Escanear EAN";
 }

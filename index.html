@@ -25,7 +25,6 @@
   </header>
 
   <main class="contenedor">
-
     <section id="seccionAuth" class="panel auth-panel">
       <h2>Acceso al sistema</h2>
 
@@ -68,18 +67,24 @@
       <h2>Agregar producto</h2>
 
       <form id="formProducto" class="formulario">
-        <input type="text" id="nombre" placeholder="Nombre del producto" required>
         <input
-  type="text"
-  id="codigoBarras"
-  placeholder="EAN / Código EAN-13"
-/>
+          type="text"
+          id="codigoBarras"
+          placeholder="EAN / Código EAN-13"
+        >
 
-<button id="btnEscanear" type="button">
-  📷 Escanear EAN
-</button>
+        <button id="btnEscanear" type="button">
+          📷 Escanear EAN
+        </button>
 
-<div id="lectorCodigo" class="lector oculto"></div>
+        <div id="lectorCodigo" class="lector oculto"></div>
+
+        <input
+          type="text"
+          id="nombre"
+          placeholder="Nombre del producto"
+          required
+        >
 
         <select id="categoria" required>
           <option value="">Seleccionar categoría</option>

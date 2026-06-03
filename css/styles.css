@@ -567,3 +567,18 @@ body {
     padding: 11px;
   }
 }
+.btn-escanear{
+  background: linear-gradient(90deg,#2563eb,#06b6d4);
+  color:white;
+  border:none;
+  padding:12px;
+  border-radius:10px;
+  cursor:pointer;
+  font-weight:700;
+}
+
+#scanner{
+  margin-top:15px;
+  border-radius:12px;
+  overflow:hidden;
+}
