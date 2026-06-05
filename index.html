@@ -135,33 +135,60 @@
         <button id="btnLimpiarFiltros" class="btn-limpiar" type="button">
           Limpiar búsqueda
         </button>
+        <button id="btnExportarExcel" class="btn-exportar" type="button">
+  📄 Exportar Excel
+</button>
+<input type="file" id="inputImportar" accept=".csv">
+<button id="btnImportarExcel">
+  📥 Importar Excel
+</button>
       </div>
     </section>
 
-    <section class="resumen seccion-app oculto">
-      <article>
-        <span id="totalProductos">0</span>
-        <p>Total productos</p>
-      </article>
+   <section class="resumen seccion-app oculto">
+  <article class="card-resumen total">
+    <span class="icono-resumen">📦</span>
+    <span id="totalProductos">0</span>
+    <p>Total productos</p>
+  </article>
 
-      <article>
-        <span id="productosPorVencer">0</span>
-        <p>Por vencer</p>
-      </article>
+  <article class="card-resumen por-vencer-card">
+    <span class="icono-resumen">⚠️</span>
+    <span id="productosPorVencer">0</span>
+    <p>Por vencer</p>
+  </article>
 
-      <article>
-        <span id="productosVencidos">0</span>
-        <p>Vencidos</p>
-      </article>
-    </section>
+  <article class="card-resumen vencidos-card">
+    <span class="icono-resumen">❌</span>
+    <span id="productosVencidos">0</span>
+    <p>Vencidos</p>
+  </article>
 
-    <section class="panel seccion-app oculto">
-      <h2>Listado de productos</h2>
+  <article class="card-resumen stock-bajo-card">
+    <span class="icono-resumen">📉</span>
+    <span id="productosStockBajo">0</span>
+    <p>Stock bajo</p>
+  </article>
 
-      <div id="contenedorProductos" class="productos">
-        <!-- Productos cargados con JavaScript -->
-      </div>
-    </section>
+  <article class="card-resumen agotados-card">
+    <span class="icono-resumen">🚫</span>
+    <span id="productosAgotados">0</span>
+    <p>Agotados</p>
+  </article>
+
+  <article class="card-resumen valor-card">
+    <span class="icono-resumen">💰</span>
+    <span id="valorInventario">$0</span>
+    <p>Valor inventario</p>
+  </article>
+</section>
+<section class="panel seccion-app oculto">
+  <h2>Listado de productos</h2>
+
+  <div id="contenedorProductos" class="productos">
+    <!-- Productos cargados con JavaScript -->
+  </div>
+</section>
   </main>
 
   <footer class="footer">

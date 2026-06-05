@@ -23,10 +23,20 @@ const btnLimpiarFiltros = document.querySelector("#btnLimpiarFiltros");
 const totalProductos = document.querySelector("#totalProductos");
 const productosPorVencer = document.querySelector("#productosPorVencer");
 const productosVencidos = document.querySelector("#productosVencidos");
+const productosStockBajo = document.querySelector("#productosStockBajo");
+const productosAgotados = document.querySelector("#productosAgotados");
+const valorInventario = document.querySelector("#valorInventario");
 
 const codigoBarrasInput = document.querySelector("#codigoBarras");
 const btnEscanear = document.querySelector("#btnEscanear");
 const lectorCodigo = document.querySelector("#lectorCodigo");
+
+const inputImportar = document.querySelector("#inputImportar");
+const btnImportarExcel = document.querySelector("#btnImportarExcel");
+const btnExportarExcel = document.querySelector("#btnExportarExcel");
+
+btnImportarExcel?.addEventListener("click", importarExcel);
+btnExportarExcel?.addEventListener("click", exportarExcel);
 
 let productos = [];
 let token = localStorage.getItem("tokenStockAlert") || "";
@@ -253,9 +263,10 @@ function renderizarProductos(listaProductos) {
 
   listaProductos.forEach((producto) => {
     const estado = obtenerEstadoProducto(producto.vencimiento);
+    const estadoStock = obtenerEstadoStock(producto.stock);
 
     const card = document.createElement("article");
-    card.classList.add("card-producto", estado.clase);
+    card.classList.add("card-producto", estado.clase, estadoStock.clase);
 
     card.innerHTML = `
       <h3>${producto.nombre}</h3>
@@ -264,7 +275,9 @@ function renderizarProductos(listaProductos) {
       <p><strong>Precio:</strong> $${producto.precio}</p>
       <p><strong>EAN:</strong> ${producto.codigoBarras || "Sin EAN"}</p>
       <p><strong>Vencimiento:</strong> ${formatearFecha(producto.vencimiento)}</p>
+
       <span class="estado ${estado.clase}">${estado.texto}</span>
+      <span class="estado-stock ${estadoStock.clase}">${estadoStock.texto}</span>
 
       <div class="botones">
         <button class="btn-editar" data-id="${producto.id}">Editar</button>
@@ -302,6 +315,34 @@ function obtenerEstadoProducto(fechaVencimiento) {
   };
 }
 
+function obtenerEstadoStock(stock) {
+  if (stock === 0) {
+    return {
+      texto: "Agotado",
+      clase: "agotado"
+    };
+  }
+
+  if (stock <= 5) {
+    return {
+      texto: "Stock crítico",
+      clase: "stock-critico"
+    };
+  }
+
+  if (stock <= 10) {
+    return {
+      texto: "Stock bajo",
+      clase: "stock-bajo"
+    };
+  }
+
+  return {
+    texto: "Stock normal",
+    clase: "stock-normal"
+  };
+}
+
 function formatearFecha(fecha) {
   const fechaNueva = new Date(fecha);
 
@@ -324,7 +365,7 @@ async function agregarProducto(e) {
   const vencimiento = document.querySelector("#vencimiento").value;
   const codigoBarras = codigoBarrasInput.value.trim();
 
-  if (!nombre || !categoria || stock <= 0 || precio <= 0 || !vencimiento) {
+  if (!nombre || !categoria || stock < 0 || precio <= 0 || !vencimiento) {
     Swal.fire({
       icon: "warning",
       title: "Datos incompletos",
@@ -371,10 +412,12 @@ async function agregarProducto(e) {
       showConfirmButton: false
     });
   } catch (error) {
+    console.error("ERROR PRODUCTO:", error);
+
     Swal.fire({
       icon: "error",
       title: "Error",
-      text: "No se pudo agregar el producto."
+      text: error.message
     });
   }
 }
@@ -482,7 +525,7 @@ function editarProducto(idProducto) {
         .querySelector("#editarCodigoBarras")
         .value.trim();
 
-      if (!nombre || !categoria || stock <= 0 || precio <= 0 || !vencimiento) {
+      if (!nombre || !categoria || stock < 0 || precio <= 0 || !vencimiento) {
         Swal.showValidationMessage("Completá todos los campos correctamente");
         return false;
       }
@@ -611,9 +654,29 @@ function actualizarResumen(listaProductos) {
     return obtenerEstadoProducto(producto.vencimiento).clase === "vencido";
   }).length;
 
+  const cantidadStockBajo = listaProductos.filter((producto) => {
+    return producto.stock > 0 && producto.stock <= 5;
+  }).length;
+
+  const cantidadAgotados = listaProductos.filter((producto) => {
+    return producto.stock === 0;
+  }).length;
+
+  const valorTotalInventario = listaProductos.reduce((total, producto) => {
+    return total + producto.stock * producto.precio;
+  }, 0);
+
   totalProductos.textContent = cantidadTotal;
   productosPorVencer.textContent = cantidadPorVencer;
   productosVencidos.textContent = cantidadVencidos;
+  productosStockBajo.textContent = cantidadStockBajo;
+  productosAgotados.textContent = cantidadAgotados;
+
+  valorInventario.textContent = valorTotalInventario.toLocaleString("es-AR", {
+    style: "currency",
+    currency: "ARS",
+    maximumFractionDigits: 0
+  });
 }
 
 function mostrarAlertasVencimiento() {
@@ -743,4 +806,166 @@ async function detenerEscaner() {
   escanerActivo = false;
   html5QrCode = null;
   btnEscanear.textContent = "📷 Escanear EAN";
+}
+
+function exportarExcel() {
+  if (productos.length === 0) {
+    Swal.fire({
+      icon: "info",
+      title: "Sin productos",
+      text: "No hay productos para exportar."
+    });
+    return;
+  }
+
+  let contenidoCSV = "Producto,Categoría,Stock,Precio,EAN,Vencimiento,Estado,Estado stock\n";
+
+  productos.forEach((producto) => {
+    contenidoCSV += `"${producto.nombre}","${producto.categoria}",${producto.stock},${producto.precio},"${producto.codigoBarras || "Sin EAN"}","${formatearFecha(producto.vencimiento)}","${obtenerEstadoProducto(producto.vencimiento).texto}","${obtenerEstadoStock(producto.stock).texto}"\n`;
+  });
+
+  const blob = new Blob([contenidoCSV], {
+    type: "text/csv;charset=utf-8;"
+  });
+
+  const url = URL.createObjectURL(blob);
+  const enlace = document.createElement("a");
+
+  enlace.href = url;
+  enlace.download = `stockalert-inventario-${Date.now()}.csv`;
+  enlace.click();
+
+  URL.revokeObjectURL(url);
+
+  Swal.fire({
+    icon: "success",
+    title: "Inventario exportado",
+    text: "Se descargó el archivo CSV.",
+    timer: 1600,
+    showConfirmButton: false
+  });
+}
+
+function importarExcel() {
+  const archivo = inputImportar.files[0];
+
+  if (!archivo) {
+    Swal.fire({
+      icon: "warning",
+      title: "Seleccioná un archivo",
+      text: "Primero elegí un archivo CSV para importar."
+    });
+    return;
+  }
+
+  const lector = new FileReader();
+
+  lector.onload = async function (e) {
+    const contenido = e.target.result;
+    const lineas = contenido.split("\n").filter((linea) => linea.trim() !== "");
+
+    const encabezados = lineas[0].split(",").map((h) =>
+      h.trim().replaceAll('"', "").toLowerCase()
+    );
+
+    const productosImportados = lineas.slice(1).map((linea) => {
+      const valores = linea.split(",").map((v) => v.trim().replaceAll('"', ""));
+      const producto = {};
+
+      encabezados.forEach((encabezado, index) => {
+        producto[encabezado] = valores[index];
+      });
+
+      return {
+        nombre: producto.producto || producto.nombre,
+        categoria: producto.categoría || producto.categoria,
+        stock: Number(producto.stock),
+        precio: Number(producto.precio),
+        codigoBarras: producto.ean || producto.codigobarras || "",
+        vencimiento: convertirFechaImportada(producto.vencimiento)
+      };
+    });
+
+    const productosValidos = productosImportados.filter((producto) => {
+      return (
+        producto.nombre &&
+        producto.categoria &&
+        !Number.isNaN(producto.stock) &&
+        !Number.isNaN(producto.precio) &&
+        producto.vencimiento
+      );
+    });
+
+    if (productosValidos.length === 0) {
+      Swal.fire({
+        icon: "error",
+        title: "Archivo inválido",
+        text: "No se encontraron productos válidos para importar."
+      });
+      return;
+    }
+
+    try {
+      for (const producto of productosValidos) {
+        const respuesta = await fetch(`${API_URL}/api/productos`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify(producto)
+        });
+
+        const data = await respuesta.json();
+
+        if (!respuesta.ok) {
+          throw new Error(data.mensaje || "Error al importar producto");
+        }
+
+        productos.push(normalizarProducto(data));
+      }
+
+      aplicarFiltros();
+      actualizarResumen(productos);
+      inputImportar.value = "";
+
+      Swal.fire({
+        icon: "success",
+        title: "Importación completa",
+        text: `Se importaron ${productosValidos.length} productos.`,
+        timer: 1800,
+        showConfirmButton: false
+      });
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Error al importar",
+        text: error.message
+      });
+    }
+  };
+
+  lector.readAsText(archivo, "UTF-8");
+}
+
+function convertirFechaImportada(fecha) {
+  if (!fecha) return "";
+
+  if (fecha.includes("-")) {
+    return fecha;
+  }
+
+  if (fecha.includes("/")) {
+    const partes = fecha.split("/");
+
+    if (partes.length === 3) {
+      const dia = partes[0].padStart(2, "0");
+      const mes = partes[1].padStart(2, "0");
+      const anio = partes[2];
+
+      return `${anio}-${mes}-${dia}`;
+    }
+  }
+
+  return fecha;
 }

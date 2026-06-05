@@ -582,3 +582,208 @@ body {
   border-radius:12px;
   overflow:hidden;
 }
+/* Dashboard Pro y Stock bajo */
+
+.resumen article:nth-child(4) {
+  border-left: 8px solid #f4a261;
+}
+
+.resumen article:nth-child(5) {
+  border-left: 8px solid #d90429;
+}
+
+.resumen article:nth-child(6) {
+  border-left: 8px solid #2d6a4f;
+}
+
+.estado-stock {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  margin-top: 10px;
+  margin-left: 6px;
+}
+
+.stock-normal {
+  background-color: #d8f3dc;
+  color: #2d6a4f;
+}
+
+.stock-bajo {
+  background-color: #fff3bf;
+  color: #99582a;
+}
+
+.stock-critico {
+  background-color: #ffd6a5;
+  color: #bc6c25;
+}
+
+.agotado {
+  background-color: #ffccd5;
+  color: #d90429;
+}
+
+.card-producto.stock-critico {
+  border-left-color: #f4a261;
+  box-shadow: 0 6px 16px rgba(244, 162, 97, 0.25);
+}
+
+.card-producto.agotado {
+  border-left-color: #d90429;
+  box-shadow: 0 6px 16px rgba(217, 4, 41, 0.25);
+}
+
+.modo-oscuro .stock-normal {
+  background-color: #1b4332;
+  color: #d8f3dc;
+}
+
+.modo-oscuro .stock-bajo {
+  background-color: #5f4b00;
+  color: #fff3bf;
+}
+
+.modo-oscuro .stock-critico {
+  background-color: #7f4f24;
+  color: #ffd6a5;
+}
+
+.modo-oscuro .agotado {
+  background-color: #641220;
+  color: #ffccd5;
+}
+
+@media (max-width: 480px) {
+  .estado-stock {
+    margin-left: 0;
+    margin-right: 6px;
+  }
+}
+/* EXPORTAR E IMPORTAR EXCEL */
+
+.btn-exportar,
+.btn-importar {
+  background: linear-gradient(135deg, #2d6a4f, #52b788);
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  border-radius: 50px;
+  padding: 12px 20px;
+  transition: all 0.3s ease;
+  width: 100%;
+  height: 56px;
+}
+
+.btn-exportar:hover,
+.btn-importar:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(135deg, #1b4332, #40916c);
+}
+
+#inputImportar {
+  width: 100%;
+  height: 56px;
+  padding: 12px;
+  border-radius: 50px;
+  border: 1px solid #666;
+  background: #2b2b2b;
+  color: white;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.modo-oscuro #inputImportar {
+  background: #2a2a2a;
+  color: white;
+  border: 1px solid #555;
+}
+#btnImportarExcel {
+  background: linear-gradient(135deg, #2d6a4f, #52b788) !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 50px !important;
+  height: 56px !important;
+  width: 100% !important;
+  font-weight: bold !important;
+  cursor: pointer !important;
+}
+/* DASHBOARD PROFESIONAL */
+
+.card-resumen {
+  position: relative;
+  overflow: hidden;
+  border-left: 8px solid #1d3557;
+  transition: all 0.3s ease;
+}
+
+.card-resumen:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 18px rgba(0,0,0,0.12);
+}
+
+.icono-resumen {
+  display: block;
+  font-size: 2rem;
+  margin-bottom: 8px;
+}
+
+.card-resumen.total {
+  border-left-color: #1d3557;
+}
+
+.card-resumen.por-vencer-card {
+  border-left-color: #f4a261;
+}
+
+.card-resumen.vencidos-card {
+  border-left-color: #d90429;
+}
+
+.card-resumen.stock-bajo-card {
+  border-left-color: #ffb703;
+}
+
+.card-resumen.agotados-card {
+  border-left-color: #6a040f;
+}
+
+.card-resumen.valor-card {
+  border-left-color: #2d6a4f;
+}
+
+.card-resumen.total span:not(.icono-resumen) {
+  color: #1d3557;
+}
+
+.card-resumen.por-vencer-card span:not(.icono-resumen) {
+  color: #f4a261;
+}
+
+.card-resumen.vencidos-card span:not(.icono-resumen) {
+  color: #d90429;
+}
+
+.card-resumen.stock-bajo-card span:not(.icono-resumen) {
+  color: #ffb703;
+}
+
+.card-resumen.agotados-card span:not(.icono-resumen) {
+  color: #6a040f;
+}
+
+.card-resumen.valor-card span:not(.icono-resumen) {
+  color: #2d6a4f;
+}
+
+.modo-oscuro .card-resumen.total span:not(.icono-resumen),
+.modo-oscuro .card-resumen.por-vencer-card span:not(.icono-resumen),
+.modo-oscuro .card-resumen.vencidos-card span:not(.icono-resumen),
+.modo-oscuro .card-resumen.stock-bajo-card span:not(.icono-resumen),
+.modo-oscuro .card-resumen.agotados-card span:not(.icono-resumen),
+.modo-oscuro .card-resumen.valor-card span:not(.icono-resumen) {
+  color: #a8dadc;
+}
