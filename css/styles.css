@@ -223,12 +223,13 @@ body {
 }
 
 .card-producto {
-  background-color: #f8f9fa;
+  background-color: rgba(248, 249, 250, 0.72);
   border-radius: 16px;
   padding: 20px;
   border-left: 8px solid #1d3557;
   transition: all 0.3s ease;
   box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+  backdrop-filter: blur(4px);
 }
 
 .card-producto:hover {
@@ -244,6 +245,8 @@ body {
   margin-bottom: 8px;
 }
 
+/* Estados por fecha */
+
 .estado {
   display: inline-block;
   padding: 6px 12px;
@@ -253,32 +256,128 @@ body {
   margin-top: 10px;
 }
 
+/* 🟢 En fecha */
 .ok {
-  background-color: #d8f3dc;
-  color: #2d6a4f;
+  background-color: rgba(34, 197, 94, 0.18);
+  color: #166534;
 }
 
+/* 🟡 Próximo a vencer */
 .por-vencer {
-  background-color: #fff3bf;
-  color: #99582a;
+  background-color: rgba(250, 204, 21, 0.25);
+  color: #854d0e;
 }
 
+/* 🔴 Vencido */
 .vencido {
-  background-color: #ffccd5;
-  color: #d90429;
+  background-color: rgba(220, 38, 38, 0.22);
+  color: #991b1b;
 }
+
+/* Cards por fecha */
 
 .card-producto.ok {
-  border-left-color: #2d6a4f;
+  background: rgba(34, 197, 94, 0.16);
+  border-left-color: #22c55e;
 }
 
 .card-producto.por-vencer {
-  border-left-color: #f4a261;
+  background: rgba(250, 204, 21, 0.22);
+  border-left-color: #facc15;
 }
 
 .card-producto.vencido {
-  border-left-color: #d90429;
+  background: rgba(220, 38, 38, 0.20);
+  border-left-color: #dc2626;
 }
+
+/* Estados de stock */
+
+.estado-stock {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  margin-top: 10px;
+  margin-left: 6px;
+}
+
+/* 🟢 Stock normal */
+.stock-normal {
+  background-color: rgba(34, 197, 94, 0.18);
+  color: #166534;
+}
+
+/* 🟣 Stock bajo */
+.stock-bajo,
+.stock-critico {
+  background-color: rgba(168, 85, 247, 0.22);
+  color: #6b21a8;
+}
+
+/* 🔴 Agotado */
+.agotado {
+  background-color: rgba(220, 38, 38, 0.22);
+  color: #991b1b;
+}
+
+/* Cards con stock bajo o crítico en violeta */
+
+.card-producto.stock-bajo,
+.card-producto.stock-critico {
+  border-left-color: #a855f7;
+  box-shadow: 0 6px 16px rgba(168, 85, 247, 0.22);
+}
+
+/* Mitad fecha + mitad stock bajo */
+
+/* 🟢 En fecha + 🟣 stock bajo */
+.card-producto.ok.stock-bajo,
+.card-producto.ok.stock-critico {
+  background: linear-gradient(
+    90deg,
+    rgba(34, 197, 94, 0.18) 0%,
+    rgba(34, 197, 94, 0.18) 50%,
+    rgba(168, 85, 247, 0.18) 50%,
+    rgba(168, 85, 247, 0.18) 100%
+  );
+  border-left-color: #22c55e;
+}
+
+/* 🟡 Por vencer + 🟣 stock bajo */
+.card-producto.por-vencer.stock-bajo,
+.card-producto.por-vencer.stock-critico {
+  background: linear-gradient(
+    90deg,
+    rgba(250, 204, 21, 0.25) 0%,
+    rgba(250, 204, 21, 0.25) 50%,
+    rgba(168, 85, 247, 0.18) 50%,
+    rgba(168, 85, 247, 0.18) 100%
+  );
+  border-left-color: #facc15;
+}
+
+/* 🔴 Vencido + 🟣 stock bajo */
+.card-producto.vencido.stock-bajo,
+.card-producto.vencido.stock-critico {
+  background: linear-gradient(
+    90deg,
+    rgba(220, 38, 38, 0.20) 0%,
+    rgba(220, 38, 38, 0.20) 50%,
+    rgba(168, 85, 247, 0.18) 50%,
+    rgba(168, 85, 247, 0.18) 100%
+  );
+  border-left-color: #dc2626;
+}
+
+/* 🔴 Agotado */
+.card-producto.agotado {
+  border-left-color: #dc2626;
+  box-shadow: 0 6px 16px rgba(220, 38, 38, 0.25);
+}
+
+/* Botones */
 
 .botones {
   margin-top: 18px;
@@ -422,7 +521,6 @@ body {
 }
 
 .modo-oscuro .card-producto {
-  background-color: #2a2a2a;
   color: #f1f1f1;
 }
 
@@ -446,6 +544,39 @@ body {
 
 .modo-oscuro .swal2-title {
   color: #a8dadc;
+}
+
+/* Modo oscuro estados */
+
+.modo-oscuro .ok {
+  background-color: rgba(34, 197, 94, 0.25);
+  color: #bbf7d0;
+}
+
+.modo-oscuro .por-vencer {
+  background-color: rgba(250, 204, 21, 0.25);
+  color: #fef08a;
+}
+
+.modo-oscuro .vencido {
+  background-color: rgba(220, 38, 38, 0.28);
+  color: #fecaca;
+}
+
+.modo-oscuro .stock-normal {
+  background-color: rgba(34, 197, 94, 0.25);
+  color: #bbf7d0;
+}
+
+.modo-oscuro .stock-bajo,
+.modo-oscuro .stock-critico {
+  background-color: rgba(168, 85, 247, 0.30);
+  color: #e9d5ff;
+}
+
+.modo-oscuro .agotado {
+  background-color: rgba(220, 38, 38, 0.30);
+  color: #fecaca;
 }
 
 /* Responsive */
@@ -516,7 +647,15 @@ body {
   .swal2-popup {
     width: 90% !important;
   }
+
+  .estado-stock {
+    margin-left: 0;
+    margin-right: 6px;
+  }
 }
+
+/* Lector */
+
 .lector {
   grid-column: 1 / -1;
   width: 100%;
@@ -539,35 +678,8 @@ body {
 #btnEscanear:hover {
   transform: translateY(-2px);
 }
-/* =========================
-   RESPONSIVE MOBILE
-========================= */
 
-@media (max-width: 480px) {
-  .contenedor {
-    width: 94%;
-    margin: 20px auto;
-  }
-
-  .panel {
-    padding: 18px;
-  }
-
-  .formulario-auth {
-    padding: 16px;
-  }
-
-  .formulario-auth h3 {
-    font-size: 1.3rem;
-  }
-
-  .formulario-auth input,
-  .formulario-auth button {
-    font-size: 0.95rem;
-    padding: 11px;
-  }
-}
-.btn-escanear{
+.btn-escanear {
   background: linear-gradient(90deg,#2563eb,#06b6d4);
   color:white;
   border:none;
@@ -577,91 +689,26 @@ body {
   font-weight:700;
 }
 
-#scanner{
+#scanner {
   margin-top:15px;
   border-radius:12px;
   overflow:hidden;
 }
-/* Dashboard Pro y Stock bajo */
+
+/* Dashboard profesional */
 
 .resumen article:nth-child(4) {
-  border-left: 8px solid #f4a261;
+  border-left: 8px solid #facc15;
 }
 
 .resumen article:nth-child(5) {
-  border-left: 8px solid #d90429;
+  border-left: 8px solid #dc2626;
 }
 
 .resumen article:nth-child(6) {
-  border-left: 8px solid #2d6a4f;
+  border-left: 8px solid #22c55e;
 }
 
-.estado-stock {
-  display: inline-block;
-  padding: 6px 12px;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  font-weight: bold;
-  margin-top: 10px;
-  margin-left: 6px;
-}
-
-.stock-normal {
-  background-color: #d8f3dc;
-  color: #2d6a4f;
-}
-
-.stock-bajo {
-  background-color: #fff3bf;
-  color: #99582a;
-}
-
-.stock-critico {
-  background-color: #ffd6a5;
-  color: #bc6c25;
-}
-
-.agotado {
-  background-color: #ffccd5;
-  color: #d90429;
-}
-
-.card-producto.stock-critico {
-  border-left-color: #f4a261;
-  box-shadow: 0 6px 16px rgba(244, 162, 97, 0.25);
-}
-
-.card-producto.agotado {
-  border-left-color: #d90429;
-  box-shadow: 0 6px 16px rgba(217, 4, 41, 0.25);
-}
-
-.modo-oscuro .stock-normal {
-  background-color: #1b4332;
-  color: #d8f3dc;
-}
-
-.modo-oscuro .stock-bajo {
-  background-color: #5f4b00;
-  color: #fff3bf;
-}
-
-.modo-oscuro .stock-critico {
-  background-color: #7f4f24;
-  color: #ffd6a5;
-}
-
-.modo-oscuro .agotado {
-  background-color: #641220;
-  color: #ffccd5;
-}
-
-@media (max-width: 480px) {
-  .estado-stock {
-    margin-left: 0;
-    margin-right: 6px;
-  }
-}
 /* EXPORTAR E IMPORTAR EXCEL */
 
 .btn-exportar,
@@ -701,6 +748,7 @@ body {
   color: white;
   border: 1px solid #555;
 }
+
 #btnImportarExcel {
   background: linear-gradient(135deg, #2d6a4f, #52b788) !important;
   color: white !important;
@@ -711,6 +759,7 @@ body {
   font-weight: bold !important;
   cursor: pointer !important;
 }
+
 /* DASHBOARD PROFESIONAL */
 
 .card-resumen {
@@ -736,23 +785,23 @@ body {
 }
 
 .card-resumen.por-vencer-card {
-  border-left-color: #f4a261;
+  border-left-color: #facc15;
 }
 
 .card-resumen.vencidos-card {
-  border-left-color: #d90429;
+  border-left-color: #dc2626;
 }
 
 .card-resumen.stock-bajo-card {
-  border-left-color: #ffb703;
+  border-left-color: #a855f7;
 }
 
 .card-resumen.agotados-card {
-  border-left-color: #6a040f;
+  border-left-color: #7f1d1d;
 }
 
 .card-resumen.valor-card {
-  border-left-color: #2d6a4f;
+  border-left-color: #22c55e;
 }
 
 .card-resumen.total span:not(.icono-resumen) {
@@ -760,23 +809,23 @@ body {
 }
 
 .card-resumen.por-vencer-card span:not(.icono-resumen) {
-  color: #f4a261;
+  color: #ca8a04;
 }
 
 .card-resumen.vencidos-card span:not(.icono-resumen) {
-  color: #d90429;
+  color: #dc2626;
 }
 
 .card-resumen.stock-bajo-card span:not(.icono-resumen) {
-  color: #ffb703;
+  color: #a855f7;
 }
 
 .card-resumen.agotados-card span:not(.icono-resumen) {
-  color: #6a040f;
+  color: #7f1d1d;
 }
 
 .card-resumen.valor-card span:not(.icono-resumen) {
-  color: #2d6a4f;
+  color: #22c55e;
 }
 
 .modo-oscuro .card-resumen.total span:not(.icono-resumen),
