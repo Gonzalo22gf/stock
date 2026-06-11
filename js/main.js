@@ -149,6 +149,7 @@ function crearSelectorSucursales() {
   filtroSucursalAdmin.addEventListener("change", async (e) => {
     sucursalSeleccionada = e.target.value;
     await cargarProductosAPI();
+    await cargarResumenSucursales();
   });
 }
 
@@ -204,23 +205,57 @@ async function cargarResumenSucursales() {
       return;
     }
 
-    data.forEach((item) => {
-      resumenSucursales.innerHTML += `
-        <article class="card-resumen-sucursal">
-          <h3>🏪 ${item.sucursal.nombre}</h3>
-          <p><strong>📦 Productos:</strong> ${item.totalProductos}</p>
-          <p><strong>⚠️ Por vencer:</strong> ${item.porVencer}</p>
-          <p><strong>❌ Vencidos:</strong> ${item.vencidos}</p>
-          <p><strong>📉 Stock crítico:</strong> ${item.stockCritico}</p>
-          <p><strong>🚫 Agotados:</strong> ${item.agotados}</p>
-          <p><strong>💰 Inventario:</strong> ${item.valorInventario.toLocaleString("es-AR", {
-            style: "currency",
-            currency: "ARS",
-            maximumFractionDigits: 0
-          })}</p>
-        </article>
+    let resumenFinal;
+
+    if (sucursalSeleccionada) {
+      resumenFinal = data.find(
+        (item) => item.sucursal._id === sucursalSeleccionada
+      );
+    } else {
+      resumenFinal = {
+        sucursal: {
+          nombre: "Todas las sucursales"
+        },
+        totalProductos: data.reduce(
+          (total, item) => total + item.totalProductos,
+          0
+        ),
+        porVencer: data.reduce((total, item) => total + item.porVencer, 0),
+        vencidos: data.reduce((total, item) => total + item.vencidos, 0),
+        stockCritico: data.reduce(
+          (total, item) => total + item.stockCritico,
+          0
+        ),
+        agotados: data.reduce((total, item) => total + item.agotados, 0),
+        valorInventario: data.reduce(
+          (total, item) => total + item.valorInventario,
+          0
+        )
+      };
+    }
+
+    if (!resumenFinal) {
+      resumenSucursales.innerHTML = `
+        <p class="mensaje-vacio">No hay datos para esta sucursal.</p>
       `;
-    });
+      return;
+    }
+
+    resumenSucursales.innerHTML = `
+      <article class="card-resumen-sucursal">
+        <h3>🏪 ${resumenFinal.sucursal.nombre}</h3>
+        <p><strong>📦 Productos:</strong> ${resumenFinal.totalProductos}</p>
+        <p><strong>⚠️ Por vencer:</strong> ${resumenFinal.porVencer}</p>
+        <p><strong>❌ Vencidos:</strong> ${resumenFinal.vencidos}</p>
+        <p><strong>📉 Stock crítico:</strong> ${resumenFinal.stockCritico}</p>
+        <p><strong>🚫 Agotados:</strong> ${resumenFinal.agotados}</p>
+        <p><strong>💰 Inventario:</strong> ${resumenFinal.valorInventario.toLocaleString("es-AR", {
+          style: "currency",
+          currency: "ARS",
+          maximumFractionDigits: 0
+        })}</p>
+      </article>
+    `;
   } catch (error) {
     console.error("ERROR RESUMEN SUCURSALES:", error);
   }
