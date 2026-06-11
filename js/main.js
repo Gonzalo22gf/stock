@@ -10,6 +10,8 @@ const btnCerrarSesion = document.querySelector("#btnCerrarSesion");
 
 const nombreUsuario = document.querySelector("#nombreUsuario");
 const nombreSucursal = document.querySelector("#nombreSucursal");
+const panelAdminGlobal = document.querySelector("#panelAdminGlobal");
+const resumenSucursales = document.querySelector("#resumenSucursales");
 
 const filtroCategoria = document.querySelector("#filtroCategoria");
 const contenedorProductos = document.querySelector("#contenedorProductos");
@@ -39,6 +41,9 @@ btnImportarExcel?.addEventListener("click", importarExcel);
 btnExportarExcel?.addEventListener("click", exportarExcel);
 
 let productos = [];
+let sucursales = [];
+let sucursalSeleccionada = "";
+
 let token = localStorage.getItem("tokenStockAlert") || "";
 let usuarioActivo = JSON.parse(localStorage.getItem("usuarioStockAlert")) || null;
 
@@ -54,6 +59,12 @@ async function iniciarApp() {
 
   if (token && usuarioActivo) {
     mostrarApp();
+
+    if (usuarioActivo.rol === "admin") {
+      await cargarSucursalesAPI();
+      await cargarResumenSucursales();
+    }
+
     await cargarProductosAPI();
   } else {
     mostrarAuth();
@@ -67,6 +78,8 @@ function mostrarAuth() {
   seccionesApp.forEach((seccion) => {
     seccion.classList.add("oculto");
   });
+
+  panelAdminGlobal?.classList.add("oculto");
 }
 
 function mostrarApp() {
@@ -78,9 +91,139 @@ function mostrarApp() {
   });
 
   nombreUsuario.textContent = usuarioActivo.nombre;
-  nombreSucursal.textContent = `Sucursal: ${
-    usuarioActivo.sucursal?.nombre || "Sin sucursal"
-  }`;
+
+  if (usuarioActivo.rol === "admin") {
+    nombreSucursal.textContent = "Rol: Administrador";
+    panelAdminGlobal?.classList.remove("oculto");
+  } else {
+    nombreSucursal.textContent = `Sucursal: ${
+      usuarioActivo.sucursal?.nombre || "Sin sucursal"
+    }`;
+
+    panelAdminGlobal?.classList.add("oculto");
+  }
+}
+
+function crearSelectorSucursales() {
+  if (usuarioActivo?.rol !== "admin") return;
+
+  const selectorExistente = document.querySelector("#selectorSucursalAdmin");
+
+  if (selectorExistente) {
+    selectorExistente.remove();
+  }
+
+  const contenedorSelector = document.createElement("div");
+  contenedorSelector.id = "selectorSucursalAdmin";
+  contenedorSelector.style.marginTop = "12px";
+
+  contenedorSelector.innerHTML = `
+    <label for="filtroSucursalAdmin" style="display:block; font-weight:bold; margin-bottom:6px;">
+      🏪 Ver sucursal
+    </label>
+
+    <select id="filtroSucursalAdmin" style="
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      width: 100%;
+      max-width: 280px;
+      font-weight: bold;
+    ">
+      <option value="">Todas las sucursales</option>
+      ${sucursales
+        .map(
+          (sucursal) =>
+            `<option value="${sucursal._id}">${sucursal.nombre}</option>`
+        )
+        .join("")}
+    </select>
+  `;
+
+  nombreSucursal.insertAdjacentElement("afterend", contenedorSelector);
+
+  const filtroSucursalAdmin = document.querySelector("#filtroSucursalAdmin");
+
+  filtroSucursalAdmin.value = sucursalSeleccionada;
+
+  filtroSucursalAdmin.addEventListener("change", async (e) => {
+    sucursalSeleccionada = e.target.value;
+    await cargarProductosAPI();
+  });
+}
+
+async function cargarSucursalesAPI() {
+  try {
+    const respuesta = await fetch(`${API_URL}/api/sucursales`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+
+    const data = await respuesta.json();
+
+    if (!respuesta.ok) {
+      throw new Error(data.mensaje || "Error al cargar sucursales");
+    }
+
+    sucursales = data;
+    crearSelectorSucursales();
+  } catch (error) {
+    console.error("ERROR SUCURSALES:", error);
+
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: "No se pudieron cargar las sucursales."
+    });
+  }
+}
+
+async function cargarResumenSucursales() {
+  if (usuarioActivo?.rol !== "admin") return;
+
+  try {
+    const respuesta = await fetch(`${API_URL}/api/sucursales/resumen`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+
+    const data = await respuesta.json();
+
+    if (!respuesta.ok) {
+      throw new Error(data.mensaje || "Error al cargar resumen");
+    }
+
+    resumenSucursales.innerHTML = "";
+
+    if (data.length === 0) {
+      resumenSucursales.innerHTML = `
+        <p class="mensaje-vacio">No hay sucursales para mostrar.</p>
+      `;
+      return;
+    }
+
+    data.forEach((item) => {
+      resumenSucursales.innerHTML += `
+        <article class="card-resumen-sucursal">
+          <h3>🏪 ${item.sucursal.nombre}</h3>
+          <p><strong>📦 Productos:</strong> ${item.totalProductos}</p>
+          <p><strong>⚠️ Por vencer:</strong> ${item.porVencer}</p>
+          <p><strong>❌ Vencidos:</strong> ${item.vencidos}</p>
+          <p><strong>📉 Stock crítico:</strong> ${item.stockCritico}</p>
+          <p><strong>🚫 Agotados:</strong> ${item.agotados}</p>
+          <p><strong>💰 Inventario:</strong> ${item.valorInventario.toLocaleString("es-AR", {
+            style: "currency",
+            currency: "ARS",
+            maximumFractionDigits: 0
+          })}</p>
+        </article>
+      `;
+    });
+  } catch (error) {
+    console.error("ERROR RESUMEN SUCURSALES:", error);
+  }
 }
 
 formRegistro.addEventListener("submit", registrarUsuario);
@@ -114,6 +257,12 @@ async function registrarUsuario(e) {
     guardarSesion(data);
     formRegistro.reset();
     mostrarApp();
+
+    if (usuarioActivo.rol === "admin") {
+      await cargarSucursalesAPI();
+      await cargarResumenSucursales();
+    }
+
     await cargarProductosAPI();
 
     Swal.fire({
@@ -160,6 +309,12 @@ async function iniciarSesion(e) {
     guardarSesion(data);
     formLogin.reset();
     mostrarApp();
+
+    if (usuarioActivo.rol === "admin") {
+      await cargarSucursalesAPI();
+      await cargarResumenSucursales();
+    }
+
     await cargarProductosAPI();
 
     Swal.fire({
@@ -199,9 +354,21 @@ function cerrarSesion() {
   token = "";
   usuarioActivo = null;
   productos = [];
+  sucursales = [];
+  sucursalSeleccionada = "";
 
   localStorage.removeItem("tokenStockAlert");
   localStorage.removeItem("usuarioStockAlert");
+
+  const selectorAdmin = document.querySelector("#selectorSucursalAdmin");
+
+  if (selectorAdmin) {
+    selectorAdmin.remove();
+  }
+
+  if (resumenSucursales) {
+    resumenSucursales.innerHTML = "";
+  }
 
   renderizarProductos([]);
   actualizarResumen([]);
@@ -217,7 +384,13 @@ function cerrarSesion() {
 
 async function cargarProductosAPI() {
   try {
-    const respuesta = await fetch(`${API_URL}/api/productos`, {
+    let url = `${API_URL}/api/productos`;
+
+    if (usuarioActivo?.rol === "admin" && sucursalSeleccionada) {
+      url += `?sucursal=${sucursalSeleccionada}`;
+    }
+
+    const respuesta = await fetch(url, {
       headers: {
         Authorization: `Bearer ${token}`
       }
@@ -251,6 +424,18 @@ function normalizarProducto(producto) {
   };
 }
 
+function obtenerNombreSucursalProducto(producto) {
+  if (producto.sucursal && typeof producto.sucursal === "object") {
+    return producto.sucursal.nombre || "Sin sucursal";
+  }
+
+  const sucursalEncontrada = sucursales.find(
+    (sucursal) => sucursal._id === producto.sucursal
+  );
+
+  return sucursalEncontrada?.nombre || "";
+}
+
 function renderizarProductos(listaProductos) {
   contenedorProductos.innerHTML = "";
 
@@ -264,12 +449,18 @@ function renderizarProductos(listaProductos) {
   listaProductos.forEach((producto) => {
     const estado = obtenerEstadoProducto(producto.vencimiento);
     const estadoStock = obtenerEstadoStock(producto.stock);
+    const nombreSucursalProducto = obtenerNombreSucursalProducto(producto);
 
     const card = document.createElement("article");
     card.classList.add("card-producto", estado.clase, estadoStock.clase);
 
     card.innerHTML = `
       <h3>${producto.nombre}</h3>
+      ${
+        usuarioActivo?.rol === "admin"
+          ? `<p><strong>Sucursal:</strong> ${nombreSucursalProducto}</p>`
+          : ""
+      }
       <p><strong>Categoría:</strong> ${producto.categoria}</p>
       <p><strong>Stock:</strong> ${producto.stock}</p>
       <p><strong>Precio:</strong> $${producto.precio}</p>
@@ -384,6 +575,10 @@ async function agregarProducto(e) {
     codigoBarras
   };
 
+  if (usuarioActivo?.rol === "admin" && sucursalSeleccionada) {
+    nuevoProducto.sucursal = sucursalSeleccionada;
+  }
+
   try {
     const respuesta = await fetch(`${API_URL}/api/productos`, {
       method: "POST",
@@ -402,6 +597,11 @@ async function agregarProducto(e) {
 
     productos.push(normalizarProducto(data));
     aplicarFiltros();
+
+    if (usuarioActivo?.rol === "admin") {
+      await cargarResumenSucursales();
+    }
+
     formProducto.reset();
 
     Swal.fire({
@@ -462,6 +662,10 @@ async function eliminarProducto(idProducto) {
 
         productos = productos.filter((producto) => producto.id !== idProducto);
         aplicarFiltros();
+
+        if (usuarioActivo?.rol === "admin") {
+          await cargarResumenSucursales();
+        }
 
         Swal.fire({
           icon: "success",
@@ -562,6 +766,10 @@ function editarProducto(idProducto) {
         );
 
         aplicarFiltros();
+
+        if (usuarioActivo?.rol === "admin") {
+          await cargarResumenSucursales();
+        }
 
         Swal.fire({
           icon: "success",
@@ -818,10 +1026,12 @@ function exportarExcel() {
     return;
   }
 
-  let contenidoCSV = "Producto,Categoría,Stock,Precio,EAN,Vencimiento,Estado,Estado stock\n";
+  let contenidoCSV = "Producto,Categoría,Stock,Precio,EAN,Vencimiento,Estado,Estado stock,Sucursal\n";
 
   productos.forEach((producto) => {
-    contenidoCSV += `"${producto.nombre}","${producto.categoria}",${producto.stock},${producto.precio},"${producto.codigoBarras || "Sin EAN"}","${formatearFecha(producto.vencimiento)}","${obtenerEstadoProducto(producto.vencimiento).texto}","${obtenerEstadoStock(producto.stock).texto}"\n`;
+    const nombreSucursalProducto = obtenerNombreSucursalProducto(producto);
+
+    contenidoCSV += `"${producto.nombre}","${producto.categoria}",${producto.stock},${producto.precio},"${producto.codigoBarras || "Sin EAN"}","${formatearFecha(producto.vencimiento)}","${obtenerEstadoProducto(producto.vencimiento).texto}","${obtenerEstadoStock(producto.stock).texto}","${nombreSucursalProducto}"\n`;
   });
 
   const blob = new Blob([contenidoCSV], {
@@ -876,7 +1086,7 @@ function importarExcel() {
         producto[encabezado] = valores[index];
       });
 
-      return {
+      const productoFinal = {
         nombre: producto.producto || producto.nombre,
         categoria: producto.categoría || producto.categoria,
         stock: Number(producto.stock),
@@ -884,6 +1094,12 @@ function importarExcel() {
         codigoBarras: producto.ean || producto.codigobarras || "",
         vencimiento: convertirFechaImportada(producto.vencimiento)
       };
+
+      if (usuarioActivo?.rol === "admin" && sucursalSeleccionada) {
+        productoFinal.sucursal = sucursalSeleccionada;
+      }
+
+      return productoFinal;
     });
 
     const productosValidos = productosImportados.filter((producto) => {
@@ -927,6 +1143,11 @@ function importarExcel() {
 
       aplicarFiltros();
       actualizarResumen(productos);
+
+      if (usuarioActivo?.rol === "admin") {
+        await cargarResumenSucursales();
+      }
+
       inputImportar.value = "";
 
       Swal.fire({
