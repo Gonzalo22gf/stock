@@ -30,6 +30,7 @@ const productosAgotados = document.querySelector("#productosAgotados");
 const valorInventario = document.querySelector("#valorInventario");
 
 const codigoBarrasInput = document.querySelector("#codigoBarras");
+const loteInput = document.querySelector("#lote");
 const btnEscanear = document.querySelector("#btnEscanear");
 const lectorCodigo = document.querySelector("#lectorCodigo");
 
@@ -456,7 +457,8 @@ function normalizarProducto(producto) {
   return {
     ...producto,
     id: producto._id || producto.id,
-    vencimiento: producto.vencimiento?.split("T")[0] || producto.vencimiento
+    vencimiento: producto.vencimiento?.split("T")[0] || producto.vencimiento,
+    lote: producto.lote || ""
   };
 }
 
@@ -537,6 +539,7 @@ function renderizarProductos(listaProductos) {
       <p><strong>Stock:</strong> ${producto.stock}</p>
       <p><strong>Precio:</strong> $${producto.precio}</p>
       <p><strong>EAN:</strong> ${producto.codigoBarras || "Sin EAN"}</p>
+      <p><strong>Lote:</strong> ${producto.lote || "Sin lote"}</p>
       <p><strong>Vencimiento:</strong> ${formatearFecha(producto.vencimiento)}</p>
 
       <hr>
@@ -633,6 +636,7 @@ async function agregarProducto(e) {
   const precio = Number(document.querySelector("#precio").value);
   const vencimiento = document.querySelector("#vencimiento").value;
   const codigoBarras = codigoBarrasInput.value.trim();
+  const lote = loteInput.value.trim();
 
   if (!nombre || !categoria || stock < 0 || precio <= 0 || !vencimiento) {
     Swal.fire({
@@ -650,7 +654,8 @@ async function agregarProducto(e) {
     stock,
     precio,
     vencimiento,
-    codigoBarras
+    codigoBarras,
+    lote
   };
 
   if (usuarioActivo?.rol === "admin" && sucursalSeleccionada) {
@@ -685,7 +690,7 @@ async function agregarProducto(e) {
     Swal.fire({
       icon: "success",
       title: "Producto agregado",
-      text: "El producto fue guardado en la sucursal.",
+      text: "El producto fue guardado con lote.",
       timer: 1800,
       showConfirmButton: false
     });
@@ -748,7 +753,9 @@ async function eliminarProducto(idProducto) {
         Swal.fire({
           icon: "success",
           title: "Eliminado",
-          text: `El producto fue eliminado por ${data.eliminadoPor?.nombre || usuarioActivo.nombre}.`,
+          text: `El producto fue eliminado por ${
+            data.eliminadoPor?.nombre || usuarioActivo.nombre
+          }.`,
           timer: 1800,
           showConfirmButton: false
         });
@@ -787,6 +794,7 @@ function editarProducto(idProducto) {
       <input id="editarPrecio" type="number" class="swal2-input" placeholder="Precio" value="${productoEncontrado.precio}">
       <input id="editarVencimiento" type="date" class="swal2-input" value="${productoEncontrado.vencimiento}">
       <input id="editarCodigoBarras" class="swal2-input" placeholder="EAN / Código EAN-13" value="${productoEncontrado.codigoBarras || ""}">
+      <input id="editarLote" class="swal2-input" placeholder="Lote del producto" value="${productoEncontrado.lote || ""}">
     `,
     showCancelButton: true,
     confirmButtonText: "Guardar cambios",
@@ -806,6 +814,7 @@ function editarProducto(idProducto) {
       const codigoBarras = document
         .querySelector("#editarCodigoBarras")
         .value.trim();
+      const lote = document.querySelector("#editarLote").value.trim();
 
       if (!nombre || !categoria || stock < 0 || precio <= 0 || !vencimiento) {
         Swal.showValidationMessage("Completá todos los campos correctamente");
@@ -818,7 +827,8 @@ function editarProducto(idProducto) {
         stock,
         precio,
         vencimiento,
-        codigoBarras
+        codigoBarras,
+        lote
       };
     }
   }).then(async (resultado) => {
@@ -880,7 +890,14 @@ function aplicarFiltros() {
   const ordenSeleccionado = ordenar.value;
 
   let productosFiltrados = productos.filter((producto) => {
-    const coincideNombre = producto.nombre.toLowerCase().includes(textoBusqueda);
+    const nombreProducto = producto.nombre.toLowerCase();
+    const eanProducto = (producto.codigoBarras || "").toLowerCase();
+    const loteProducto = (producto.lote || "").toLowerCase();
+
+    const coincideBusqueda =
+      nombreProducto.includes(textoBusqueda) ||
+      eanProducto.includes(textoBusqueda) ||
+      loteProducto.includes(textoBusqueda);
 
     const coincideCategoria =
       categoriaSeleccionada === "todas" ||
@@ -891,7 +908,7 @@ function aplicarFiltros() {
     const coincideEstado =
       estadoSeleccionado === "todos" || estadoSeleccionado === estadoProducto;
 
-    return coincideNombre && coincideCategoria && coincideEstado;
+    return coincideBusqueda && coincideCategoria && coincideEstado;
   });
 
   if (ordenSeleccionado === "nombre") {
@@ -989,7 +1006,7 @@ function mostrarAlertasVencimiento() {
         <h3 style="color:#d90429;">Productos vencidos (${productosVencidosLista.length})</h3>
         <ul style="padding-left:20px;">
           ${productosVencidosLista
-            .map((producto) => `<li>${producto.nombre}</li>`)
+            .map((producto) => `<li>${producto.nombre} - Lote: ${producto.lote || "Sin lote"}</li>`)
             .join("")}
         </ul>
       </div>
@@ -1002,7 +1019,7 @@ function mostrarAlertasVencimiento() {
         <h3 style="color:#f4a261;">Productos por vencer (${productosPorVencerLista.length})</h3>
         <ul style="padding-left:20px;">
           ${productosPorVencerLista
-            .map((producto) => `<li>${producto.nombre}</li>`)
+            .map((producto) => `<li>${producto.nombre} - Lote: ${producto.lote || "Sin lote"}</li>`)
             .join("")}
         </ul>
       </div>
@@ -1105,7 +1122,7 @@ function exportarExcel() {
   }
 
   let contenidoCSV =
-    "Producto,Categoría,Stock,Precio,EAN,Vencimiento,Estado,Estado stock,Sucursal,Creado por,Última edición,Actualizado\n";
+    "Producto,Lote,Categoría,Stock,Precio,EAN,Vencimiento,Estado,Estado stock,Sucursal,Creado por,Última edición,Actualizado\n";
 
   productos.forEach((producto) => {
     const nombreSucursalProducto = obtenerNombreSucursalProducto(producto);
@@ -1115,7 +1132,7 @@ function exportarExcel() {
       producto.fechaUltimaActualizacion || producto.updatedAt
     );
 
-    contenidoCSV += `"${producto.nombre}","${producto.categoria}",${producto.stock},${producto.precio},"${producto.codigoBarras || "Sin EAN"}","${formatearFecha(producto.vencimiento)}","${obtenerEstadoProducto(producto.vencimiento).texto}","${obtenerEstadoStock(producto.stock).texto}","${nombreSucursalProducto}","${creadoPor}","${actualizadoPor}","${fechaActualizacion}"\n`;
+    contenidoCSV += `"${producto.nombre}","${producto.lote || ""}","${producto.categoria}",${producto.stock},${producto.precio},"${producto.codigoBarras || "Sin EAN"}","${formatearFecha(producto.vencimiento)}","${obtenerEstadoProducto(producto.vencimiento).texto}","${obtenerEstadoStock(producto.stock).texto}","${nombreSucursalProducto}","${creadoPor}","${actualizadoPor}","${fechaActualizacion}"\n`;
   });
 
   const blob = new Blob([contenidoCSV], {
@@ -1172,6 +1189,7 @@ function importarExcel() {
 
       const productoFinal = {
         nombre: producto.producto || producto.nombre,
+        lote: producto.lote || "",
         categoria: producto.categoría || producto.categoria,
         stock: Number(producto.stock),
         precio: Number(producto.precio),
@@ -1237,7 +1255,7 @@ function importarExcel() {
       Swal.fire({
         icon: "success",
         title: "Importación completa",
-        text: `Se importaron ${productosValidos.length} productos.`,
+        text: `Se importaron ${productosValidos.length} productos con lote.`,
         timer: 1800,
         showConfirmButton: false
       });
