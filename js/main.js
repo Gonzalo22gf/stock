@@ -45,7 +45,8 @@ let sucursales = [];
 let sucursalSeleccionada = "";
 
 let token = localStorage.getItem("tokenStockAlert") || "";
-let usuarioActivo = JSON.parse(localStorage.getItem("usuarioStockAlert")) || null;
+let usuarioActivo =
+  JSON.parse(localStorage.getItem("usuarioStockAlert")) || null;
 
 let escanerActivo = false;
 let html5QrCode = null;
@@ -471,6 +472,34 @@ function obtenerNombreSucursalProducto(producto) {
   return sucursalEncontrada?.nombre || "";
 }
 
+function obtenerNombreUsuario(usuario) {
+  if (!usuario) {
+    return "Sin datos";
+  }
+
+  if (typeof usuario === "object") {
+    return usuario.nombre || usuario.email || "Sin datos";
+  }
+
+  return "Sin datos";
+}
+
+function formatearFechaHora(fecha) {
+  if (!fecha) {
+    return "Sin datos";
+  }
+
+  const fechaNueva = new Date(fecha);
+
+  return fechaNueva.toLocaleString("es-AR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+}
+
 function renderizarProductos(listaProductos) {
   contenedorProductos.innerHTML = "";
 
@@ -486,21 +515,35 @@ function renderizarProductos(listaProductos) {
     const estadoStock = obtenerEstadoStock(producto.stock);
     const nombreSucursalProducto = obtenerNombreSucursalProducto(producto);
 
+    const creadoPor = obtenerNombreUsuario(producto.creadoPor);
+    const actualizadoPor = obtenerNombreUsuario(producto.actualizadoPor);
+    const fechaActualizacion = formatearFechaHora(
+      producto.fechaUltimaActualizacion || producto.updatedAt
+    );
+
     const card = document.createElement("article");
     card.classList.add("card-producto", estado.clase, estadoStock.clase);
 
     card.innerHTML = `
       <h3>${producto.nombre}</h3>
+
       ${
         usuarioActivo?.rol === "admin"
           ? `<p><strong>Sucursal:</strong> ${nombreSucursalProducto}</p>`
           : ""
       }
+
       <p><strong>Categoría:</strong> ${producto.categoria}</p>
       <p><strong>Stock:</strong> ${producto.stock}</p>
       <p><strong>Precio:</strong> $${producto.precio}</p>
       <p><strong>EAN:</strong> ${producto.codigoBarras || "Sin EAN"}</p>
       <p><strong>Vencimiento:</strong> ${formatearFecha(producto.vencimiento)}</p>
+
+      <hr>
+
+      <p><strong>Creado por:</strong> ${creadoPor}</p>
+      <p><strong>Última edición:</strong> ${actualizadoPor}</p>
+      <p><strong>Actualizado:</strong> ${fechaActualizacion}</p>
 
       <span class="estado ${estado.clase}">${estado.texto}</span>
       <span class="estado-stock ${estadoStock.clase}">${estadoStock.texto}</span>
@@ -705,8 +748,8 @@ async function eliminarProducto(idProducto) {
         Swal.fire({
           icon: "success",
           title: "Eliminado",
-          text: "El producto fue eliminado.",
-          timer: 1600,
+          text: `El producto fue eliminado por ${data.eliminadoPor?.nombre || usuarioActivo.nombre}.`,
+          timer: 1800,
           showConfirmButton: false
         });
       } catch (error) {
@@ -1061,12 +1104,18 @@ function exportarExcel() {
     return;
   }
 
-  let contenidoCSV = "Producto,Categoría,Stock,Precio,EAN,Vencimiento,Estado,Estado stock,Sucursal\n";
+  let contenidoCSV =
+    "Producto,Categoría,Stock,Precio,EAN,Vencimiento,Estado,Estado stock,Sucursal,Creado por,Última edición,Actualizado\n";
 
   productos.forEach((producto) => {
     const nombreSucursalProducto = obtenerNombreSucursalProducto(producto);
+    const creadoPor = obtenerNombreUsuario(producto.creadoPor);
+    const actualizadoPor = obtenerNombreUsuario(producto.actualizadoPor);
+    const fechaActualizacion = formatearFechaHora(
+      producto.fechaUltimaActualizacion || producto.updatedAt
+    );
 
-    contenidoCSV += `"${producto.nombre}","${producto.categoria}",${producto.stock},${producto.precio},"${producto.codigoBarras || "Sin EAN"}","${formatearFecha(producto.vencimiento)}","${obtenerEstadoProducto(producto.vencimiento).texto}","${obtenerEstadoStock(producto.stock).texto}","${nombreSucursalProducto}"\n`;
+    contenidoCSV += `"${producto.nombre}","${producto.categoria}",${producto.stock},${producto.precio},"${producto.codigoBarras || "Sin EAN"}","${formatearFecha(producto.vencimiento)}","${obtenerEstadoProducto(producto.vencimiento).texto}","${obtenerEstadoStock(producto.stock).texto}","${nombreSucursalProducto}","${creadoPor}","${actualizadoPor}","${fechaActualizacion}"\n`;
   });
 
   const blob = new Blob([contenidoCSV], {
