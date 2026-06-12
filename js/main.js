@@ -82,6 +82,15 @@ function mostrarAuth() {
   });
 
   panelAdminGlobal?.classList.add("oculto");
+
+  formLogin?.reset();
+  formRegistro?.reset();
+
+  const selectorAdmin = document.querySelector("#selectorSucursalAdmin");
+
+  if (selectorAdmin) {
+    selectorAdmin.remove();
+  }
 }
 
 function mostrarApp() {

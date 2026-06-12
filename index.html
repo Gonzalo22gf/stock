@@ -29,23 +29,76 @@
       <h2>Acceso al sistema</h2>
 
       <div class="auth-contenedor">
-        <form id="formLogin" class="formulario-auth">
+        <form id="formLogin" class="formulario-auth" autocomplete="off">
           <h3>Iniciar sesión</h3>
 
-          <input type="email" id="loginEmail" placeholder="Email" required>
-          <input type="password" id="loginPassword" placeholder="Contraseña" required>
+          <input
+            type="email"
+            id="loginEmail"
+            placeholder="Email"
+            required
+            autocomplete="off"
+            autocapitalize="none"
+            spellcheck="false"
+          >
+
+          <input
+            type="password"
+            id="loginPassword"
+            placeholder="Contraseña"
+            required
+            autocomplete="new-password"
+          >
 
           <button type="submit">Ingresar</button>
         </form>
 
-        <form id="formRegistro" class="formulario-auth">
+        <form id="formRegistro" class="formulario-auth" autocomplete="off">
           <h3>Registrar sucursal</h3>
 
-          <input type="text" id="registroNombre" placeholder="Nombre del usuario" required>
-          <input type="email" id="registroEmail" placeholder="Email" required>
-          <input type="password" id="registroPassword" placeholder="Contraseña" required>
-          <input type="text" id="registroSucursal" placeholder="Nombre de la sucursal" required>
-          <input type="text" id="registroDireccion" placeholder="Dirección de la sucursal">
+          <input
+            type="text"
+            id="registroNombre"
+            placeholder="Nombre del usuario"
+            required
+            autocomplete="off"
+            spellcheck="false"
+          >
+
+          <input
+            type="email"
+            id="registroEmail"
+            placeholder="Email"
+            required
+            autocomplete="off"
+            autocapitalize="none"
+            spellcheck="false"
+          >
+
+          <input
+            type="password"
+            id="registroPassword"
+            placeholder="Contraseña"
+            required
+            autocomplete="new-password"
+          >
+
+          <input
+            type="text"
+            id="registroSucursal"
+            placeholder="Nombre de la sucursal"
+            required
+            autocomplete="off"
+            spellcheck="false"
+          >
+
+          <input
+            type="text"
+            id="registroDireccion"
+            placeholder="Dirección de la sucursal"
+            autocomplete="off"
+            spellcheck="false"
+          >
 
           <button type="submit">Registrarse</button>
         </form>
@@ -74,11 +127,13 @@
     <section class="panel seccion-app oculto">
       <h2>Agregar producto</h2>
 
-      <form id="formProducto" class="formulario">
+      <form id="formProducto" class="formulario" autocomplete="off">
         <input
           type="text"
           id="codigoBarras"
           placeholder="EAN / Código EAN-13"
+          autocomplete="off"
+          spellcheck="false"
         >
 
         <button id="btnEscanear" type="button">
@@ -92,6 +147,8 @@
           id="nombre"
           placeholder="Nombre del producto"
           required
+          autocomplete="off"
+          spellcheck="false"
         >
 
         <select id="categoria" required>
@@ -103,10 +160,38 @@
           <option value="Congelados">Congelados</option>
         </select>
 
-        <input type="text" id="lote" placeholder="Lote del producto">
-        <input type="number" id="stock" placeholder="Stock" min="1" required>
-        <input type="number" id="precio" placeholder="Precio" min="1" required>
-        <input type="date" id="vencimiento" required>
+        <input
+          type="text"
+          id="lote"
+          placeholder="Lote del producto"
+          autocomplete="off"
+          spellcheck="false"
+        >
+
+        <input
+          type="number"
+          id="stock"
+          placeholder="Stock"
+          min="1"
+          required
+          autocomplete="off"
+        >
+
+        <input
+          type="number"
+          id="precio"
+          placeholder="Precio"
+          min="1"
+          required
+          autocomplete="off"
+        >
+
+        <input
+          type="date"
+          id="vencimiento"
+          required
+          autocomplete="off"
+        >
 
         <button type="submit">Agregar producto</button>
       </form>
@@ -116,7 +201,13 @@
       <h2>Buscar y filtrar</h2>
 
       <div class="filtros">
-        <input type="text" id="buscador" placeholder="Buscar producto, EAN o lote...">
+        <input
+          type="text"
+          id="buscador"
+          placeholder="Buscar producto, EAN o lote..."
+          autocomplete="off"
+          spellcheck="false"
+        >
 
         <select id="filtroCategoria">
           <option value="todas">Todas las categorías</option>
