@@ -1,3 +1,22 @@
+/* =========================================================
+   STOCKALERT - STYLES.CSS LIMPIO UI/UX
+   ========================================================= */
+
+:root {
+  --azul-900: #0d1b2a;
+  --azul-700: #1d3557;
+  --azul-500: #457b9d;
+  --azul-300: #a8dadc;
+  --verde: #22c55e;
+  --amarillo: #facc15;
+  --rojo: #dc2626;
+  --violeta: #a855f7;
+  --gris-300: #cbd5e1;
+  --gris-700: #334155;
+  --radio: 16px;
+  --sombra: 0 6px 16px rgba(0,0,0,.08);
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -6,53 +25,47 @@
 
 body {
   font-family: Arial, Helvetica, sans-serif;
-  background-color: #f4f7fb;
+  background: #f4f7fb;
   color: #333;
-  transition: background-color 0.3s ease;
 }
 
-.header {
-  background-color: #1d3557;
+.header,
+.footer {
+  background: linear-gradient(135deg, var(--azul-900), var(--azul-700));
   color: white;
-  padding: 25px;
   text-align: center;
+  padding: 25px;
 }
 
 .header h1 {
   font-size: 2.5rem;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .contenedor {
-  width: 90%;
-  max-width: 1200px;
+  width: 92%;
+  max-width: 1280px;
   margin: 30px auto;
 }
 
 .panel {
-  background-color: white;
-  padding: 25px;
-  border-radius: 16px;
-  margin-bottom: 25px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  background: white;
+  padding: 24px;
+  border-radius: var(--radio);
+  margin-bottom: 24px;
+  box-shadow: var(--sombra);
 }
 
 .panel h2 {
-  margin-bottom: 20px;
-  color: #1d3557;
+  margin-bottom: 18px;
+  color: var(--azul-700);
 }
 
 .oculto {
   display: none !important;
 }
 
-/* Login y registro */
-
-.auth-panel {
-  max-width: 1000px;
-  margin-left: auto;
-  margin-right: auto;
-}
+/* LOGIN */
 
 .auth-contenedor {
   display: grid;
@@ -61,811 +74,377 @@ body {
 }
 
 .formulario-auth {
-  background-color: #f8f9fa;
-  border-radius: 16px;
-  padding: 20px;
+  background: #f8fafc;
+  border-radius: var(--radio);
+  padding: 22px;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  border-left: 6px solid #1d3557;
+  border-left: 6px solid var(--azul-700);
 }
 
 .formulario-auth h3 {
-  color: #1d3557;
-  margin-bottom: 8px;
+  color: var(--azul-700);
 }
 
 .formulario-auth input,
 .formulario-auth button {
   padding: 12px;
-  border-radius: 10px;
+  border-radius: 12px;
   border: 1px solid #ccc;
   font-size: 1rem;
 }
 
-.formulario-auth input:focus {
-  outline: none;
-  border-color: #457b9d;
-}
-
-.formulario-auth button {
-  background: linear-gradient(135deg, #1d3557, #457b9d);
+.formulario-auth button,
+#formProducto > button[type="submit"],
+.btn-editar,
+.paginacion-historial button {
+  background: linear-gradient(135deg, var(--azul-700), var(--azul-500));
   color: white;
-  border: none;
-  cursor: pointer;
   font-weight: bold;
-  transition: 0.3s ease;
+  cursor: pointer;
 }
 
-.formulario-auth button:hover {
-  transform: translateY(-2px);
+.btn-cerrar,
+.btn-eliminar {
+  background: linear-gradient(135deg, #d90429, #ef233c);
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
 }
+
+/* USUARIO */
 
 .usuario-panel {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  align-items: center;
   border-left: 8px solid #2d6a4f;
 }
 
-.usuario-panel h2 {
-  margin-bottom: 8px;
-}
-
-.usuario-panel p {
-  color: #555;
-  font-weight: bold;
-}
-
 .btn-cerrar {
-  background: linear-gradient(135deg, #d90429, #ef233c);
-  color: white;
-  border: none;
   padding: 12px 16px;
-  border-radius: 10px;
-  cursor: pointer;
+  border-radius: 12px;
+}
+
+/* FORMULARIO PRODUCTO */
+
+#formProducto.formulario {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.15fr 1fr .75fr;
+  gap: 12px;
+  align-items: center;
+}
+
+#formProducto input,
+#formProducto select,
+#formProducto button {
+  width: 100%;
+  height: 50px;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid #ccc;
+}
+
+#codigoBarras { grid-column: 1; }
+#btnEscanear { grid-column: 2; }
+#nombre { grid-column: 3; }
+#categoria { grid-column: 4; }
+#precio { grid-column: 5; }
+
+#contenedorLotes,
+.contenedor-lotes,
+.fila-lote {
+  display: contents;
+}
+
+.lote-numero { grid-column: 1; }
+.lote-stock { grid-column: 2; }
+.lote-vencimiento { grid-column: 3; }
+
+#btnEscanear {
+  background: linear-gradient(135deg, #2d6a4f, #52b788);
+  color: white;
   font-weight: bold;
-  transition: 0.3s ease;
 }
 
-.btn-cerrar:hover {
-  transform: translateY(-2px);
+#btnAgregarLote {
+  grid-column: 4;
+  background: linear-gradient(135deg, #2563eb, #06b6d4);
+  color: white;
+  font-weight: bold;
 }
 
-/* Formularios principales */
+#formProducto > button[type="submit"] {
+  grid-column: 5;
+}
 
-.formulario,
+/* FILTROS */
+
 .filtros {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 15px;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 14px;
 }
 
-.formulario input,
-.formulario select,
-.formulario button,
 .filtros input,
 .filtros select,
-.btn-limpiar {
-  padding: 12px;
-  border-radius: 10px;
-  border: 1px solid #ccc;
-  font-size: 1rem;
-}
-
-.formulario input:focus,
-.formulario select:focus,
-.filtros input:focus,
-.filtros select:focus {
-  outline: none;
-  border-color: #457b9d;
-}
-
-.formulario button {
-  background: linear-gradient(135deg, #1d3557, #457b9d);
-  color: white;
-  border: none;
-  cursor: pointer;
-  transition: 0.3s ease;
-  font-weight: bold;
-}
-
-.formulario button:hover {
-  transform: translateY(-2px);
+.filtros button,
+#buscarMovimiento,
+#filtroAccion,
+.btn-exportar-historial {
+  width: 100%;
+  height: 56px;
+  padding: 0 16px;
+  border-radius: 14px;
+  border: 1px solid var(--gris-300);
+  font-size: .95rem;
+  font-weight: 700;
 }
 
 .btn-limpiar {
   background: linear-gradient(135deg, #6c757d, #adb5bd);
   color: white;
-  border: none;
-  cursor: pointer;
   font-weight: bold;
-  transition: all 0.3s ease;
 }
 
-.btn-limpiar:hover {
-  transform: translateY(-2px);
-  background: linear-gradient(135deg, #495057, #6c757d);
+.btn-exportar,
+#btnImportarExcel,
+.btn-exportar-historial {
+  background: linear-gradient(135deg, #2d6a4f, #52b788) !important;
+  color: white !important;
+  font-weight: bold;
+  cursor: pointer;
 }
 
-/* Resumen */
+#inputImportar {
+  background: #2b2b2b;
+  color: white;
+  font-weight: bold;
+}
+
+/* RESUMEN */
 
 .resumen {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 20px;
-  margin-bottom: 25px;
+  grid-template-columns: repeat(auto-fit, minmax(185px, 1fr));
+  gap: 18px;
+  margin-bottom: 24px;
 }
 
+.card-resumen,
 .resumen article {
-  background-color: white;
-  padding: 25px;
-  border-radius: 16px;
+  background: white;
+  padding: 22px 18px;
+  border-radius: var(--radio);
   text-align: center;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  box-shadow: var(--sombra);
+  border-left: 8px solid var(--azul-700);
 }
 
 .resumen span {
   display: block;
-  font-size: 2rem;
-  font-weight: bold;
-  color: #1d3557;
-  margin-bottom: 10px;
+  font-size: 1.7rem;
+  font-weight: 800;
+  color: var(--azul-700);
+  margin-bottom: 8px;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+.card-resumen.valor-card span {
+  font-size: 1.4rem;
 }
 
-/* Productos */
+.card-resumen.total { border-left-color: var(--azul-700); }
+.card-resumen.por-vencer-card { border-left-color: var(--amarillo); }
+.card-resumen.vencidos-card { border-left-color: var(--rojo); }
+.card-resumen.stock-bajo-card { border-left-color: var(--violeta); }
+.card-resumen.agotados-card { border-left-color: #7f1d1d; }
+.card-resumen.valor-card { border-left-color: var(--verde); }
+
+/* GRÁFICOS */
+
+.graficos-dashboard {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 22px;
+}
+
+.grafico-card {
+  background: white;
+  padding: 22px;
+  border-radius: var(--radio);
+  box-shadow: var(--sombra);
+  min-height: 360px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.grafico-card h3 {
+  color: var(--azul-700);
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.grafico-card canvas {
+  max-width: 100%;
+  max-height: 280px;
+}
+
+/* PRODUCTOS */
 
 .productos {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 18px;
 }
 
 .card-producto {
-  background-color: rgba(248, 249, 250, 0.72);
-  border-radius: 16px;
-  padding: 20px;
-  border-left: 8px solid #1d3557;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.06);
-  backdrop-filter: blur(4px);
-}
-
-.card-producto:hover {
-  transform: translateY(-5px);
+  background: rgba(248,249,250,.9);
+  border-radius: var(--radio);
+  padding: 14px;
+  border-left: 8px solid var(--azul-700);
+  box-shadow: var(--sombra);
 }
 
 .card-producto h3 {
-  margin-bottom: 10px;
-  color: #1d3557;
+  color: var(--azul-700);
+  font-size: 1rem;
+  margin-bottom: 6px;
 }
 
 .card-producto p {
-  margin-bottom: 8px;
+  margin: 3px 0;
+  font-size: .86rem;
 }
 
-/* Estados por fecha */
-
-.estado {
-  display: inline-block;
-  padding: 6px 12px;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  font-weight: bold;
-  margin-top: 10px;
+.card-producto hr {
+  margin: 8px 0;
+  opacity: .25;
 }
 
-/* 🟢 En fecha */
-.ok {
-  background-color: rgba(34, 197, 94, 0.18);
-  color: #166534;
-}
-
-/* 🟡 Próximo a vencer */
-.por-vencer {
-  background-color: rgba(250, 204, 21, 0.25);
-  color: #854d0e;
-}
-
-/* 🔴 Vencido */
-.vencido {
-  background-color: rgba(220, 38, 38, 0.22);
-  color: #991b1b;
-}
-
-/* Cards por fecha */
-
-.card-producto.ok {
-  background: rgba(34, 197, 94, 0.16);
-  border-left-color: #22c55e;
-}
-
-.card-producto.por-vencer {
-  background: rgba(250, 204, 21, 0.22);
-  border-left-color: #facc15;
-}
-
-.card-producto.vencido {
-  background: rgba(220, 38, 38, 0.20);
-  border-left-color: #dc2626;
-}
-
-/* Estados de stock */
-
+.estado,
 .estado-stock {
   display: inline-block;
-  padding: 6px 12px;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  font-weight: bold;
-  margin-top: 10px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  font-size: .78rem;
+  font-weight: 800;
+  margin-top: 5px;
+}
+
+.estado-stock {
   margin-left: 6px;
 }
 
-/* 🟢 Stock normal */
+.ok,
 .stock-normal {
-  background-color: rgba(34, 197, 94, 0.18);
+  background: rgba(34,197,94,.18);
   color: #166534;
 }
 
-/* 🟣 Stock bajo */
-.stock-bajo,
-.stock-critico {
-  background-color: rgba(168, 85, 247, 0.22);
-  color: #6b21a8;
+.por-vencer {
+  background: rgba(250,204,21,.25);
+  color: #854d0e;
 }
 
-/* 🔴 Agotado */
+.vencido,
 .agotado {
-  background-color: rgba(220, 38, 38, 0.22);
+  background: rgba(220,38,38,.22);
   color: #991b1b;
 }
 
-/* Cards con stock bajo o crítico en violeta */
+.stock-bajo,
+.stock-critico {
+  background: rgba(168,85,247,.22);
+  color: #6b21a8;
+}
+
+.card-producto.ok {
+  background: rgba(34,197,94,.16);
+  border-left-color: var(--verde);
+}
+
+.card-producto.por-vencer {
+  background: rgba(250,204,21,.22);
+  border-left-color: var(--amarillo);
+}
+
+.card-producto.vencido {
+  background: rgba(220,38,38,.20);
+  border-left-color: var(--rojo);
+}
 
 .card-producto.stock-bajo,
 .card-producto.stock-critico {
-  border-left-color: #a855f7;
-  box-shadow: 0 6px 16px rgba(168, 85, 247, 0.22);
+  border-left-color: var(--violeta);
 }
-
-/* Mitad fecha + mitad stock bajo */
-
-/* 🟢 En fecha + 🟣 stock bajo */
-.card-producto.ok.stock-bajo,
-.card-producto.ok.stock-critico {
-  background: linear-gradient(
-    90deg,
-    rgba(34, 197, 94, 0.18) 0%,
-    rgba(34, 197, 94, 0.18) 50%,
-    rgba(168, 85, 247, 0.18) 50%,
-    rgba(168, 85, 247, 0.18) 100%
-  );
-  border-left-color: #22c55e;
-}
-
-/* 🟡 Por vencer + 🟣 stock bajo */
-.card-producto.por-vencer.stock-bajo,
-.card-producto.por-vencer.stock-critico {
-  background: linear-gradient(
-    90deg,
-    rgba(250, 204, 21, 0.25) 0%,
-    rgba(250, 204, 21, 0.25) 50%,
-    rgba(168, 85, 247, 0.18) 50%,
-    rgba(168, 85, 247, 0.18) 100%
-  );
-  border-left-color: #facc15;
-}
-
-/* 🔴 Vencido + 🟣 stock bajo */
-.card-producto.vencido.stock-bajo,
-.card-producto.vencido.stock-critico {
-  background: linear-gradient(
-    90deg,
-    rgba(220, 38, 38, 0.20) 0%,
-    rgba(220, 38, 38, 0.20) 50%,
-    rgba(168, 85, 247, 0.18) 50%,
-    rgba(168, 85, 247, 0.18) 100%
-  );
-  border-left-color: #dc2626;
-}
-
-/* 🔴 Agotado */
-.card-producto.agotado {
-  border-left-color: #dc2626;
-  box-shadow: 0 6px 16px rgba(220, 38, 38, 0.25);
-}
-
-/* Botones */
 
 .botones {
-  margin-top: 18px;
   display: flex;
-  gap: 10px;
+  gap: 8px;
+  margin-top: 10px;
 }
 
-.btn-editar {
-  background: linear-gradient(135deg, #1d3557, #457b9d);
-  color: white;
-  border: none;
-  padding: 10px 14px;
-  border-radius: 10px;
-  cursor: pointer;
+.botones button {
   flex: 1;
-  font-weight: bold;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-}
-
-.btn-editar:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(0,0,0,0.2);
-}
-
-.btn-editar:active {
-  transform: scale(0.97);
-}
-
-.btn-eliminar {
-  background: linear-gradient(135deg, #d90429, #ef233c);
-  color: white;
-  border: none;
-  padding: 10px 14px;
+  padding: 9px;
   border-radius: 10px;
-  cursor: pointer;
-  flex: 1;
-  font-weight: bold;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
 
-.btn-eliminar:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+/* HISTORIAL */
+
+.dashboard-historial {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+  margin: 15px 0 20px;
 }
 
-.btn-eliminar:active {
-  transform: scale(0.97);
-}
-
-.btn-modo {
-  margin-top: 15px;
-  background-color: white;
-  color: #1d3557;
-  border: none;
-  padding: 10px 16px;
-  border-radius: 10px;
-  cursor: pointer;
-  font-weight: bold;
-  transition: 0.3s ease;
-}
-
-.btn-modo:hover {
-  background-color: #f1f1f1;
-}
-
-.footer {
-  background-color: #1d3557;
-  color: white;
+.card-dashboard {
+  background: white;
+  border-radius: var(--radio);
+  padding: 16px;
   text-align: center;
-  padding: 20px;
-  margin-top: 40px;
+  box-shadow: var(--sombra);
+  border-left: 6px solid #2563eb;
 }
 
-.mensaje-vacio {
-  grid-column: 1 / -1;
-  text-align: center;
-  padding: 30px;
-  color: #666;
-  font-size: 1.1rem;
+.card-dashboard span {
+  font-size: 1.8rem;
+  font-weight: 800;
 }
 
-/* SweetAlert */
+.card-dashboard.crear { border-left-color: var(--verde); }
+.card-dashboard.editar { border-left-color: #f59e0b; }
+.card-dashboard.eliminar { border-left-color: #ef4444; }
 
-.swal2-popup {
-  border-radius: 18px;
-  padding: 28px;
+.barra-historial {
+  display: grid;
+  grid-template-columns: 1fr 220px 220px;
+  gap: 14px;
+  align-items: center;
+  margin: 16px 0 18px;
 }
-
-.swal2-title {
-  color: #1d3557;
-  font-size: 1.7rem;
-}
-
-.swal2-input {
-  width: 85%;
-  margin: 10px auto;
-  border-radius: 10px;
-  border: 1px solid #ccc;
-  font-size: 1rem;
-}
-
-.swal2-confirm {
-  background-color: #1d3557 !important;
-  border-radius: 8px !important;
-}
-
-.swal2-cancel {
-  background-color: #d90429 !important;
-  border-radius: 8px !important;
-}
-
-/* Modo oscuro */
-
-.modo-oscuro {
-  background-color: #121212;
-  color: #f1f1f1;
-}
-
-.modo-oscuro .panel,
-.modo-oscuro .resumen article {
-  background-color: #1e1e1e;
-  color: #f1f1f1;
-}
-
-.modo-oscuro .formulario-auth {
-  background-color: #2a2a2a;
-  color: #f1f1f1;
-}
-
-.modo-oscuro .panel h2,
-.modo-oscuro .card-producto h3,
-.modo-oscuro .resumen span,
-.modo-oscuro .formulario-auth h3 {
-  color: #a8dadc;
-}
-
-.modo-oscuro .usuario-panel p {
-  color: #d8f3dc;
-}
-
-.modo-oscuro .card-producto {
-  color: #f1f1f1;
-}
-
-.modo-oscuro input,
-.modo-oscuro select,
-.modo-oscuro .swal2-input {
-  background-color: #2a2a2a;
-  color: white;
-  border: 1px solid #555;
-}
-
-.modo-oscuro .footer,
-.modo-oscuro .header {
-  background-color: #0d1b2a;
-}
-
-.modo-oscuro .swal2-popup {
-  background-color: #1e1e1e;
-  color: white;
-}
-
-.modo-oscuro .swal2-title {
-  color: #a8dadc;
-}
-
-/* Modo oscuro estados */
-
-.modo-oscuro .ok {
-  background-color: rgba(34, 197, 94, 0.25);
-  color: #bbf7d0;
-}
-
-.modo-oscuro .por-vencer {
-  background-color: rgba(250, 204, 21, 0.25);
-  color: #fef08a;
-}
-
-.modo-oscuro .vencido {
-  background-color: rgba(220, 38, 38, 0.28);
-  color: #fecaca;
-}
-
-.modo-oscuro .stock-normal {
-  background-color: rgba(34, 197, 94, 0.25);
-  color: #bbf7d0;
-}
-
-.modo-oscuro .stock-bajo,
-.modo-oscuro .stock-critico {
-  background-color: rgba(168, 85, 247, 0.30);
-  color: #e9d5ff;
-}
-
-.modo-oscuro .agotado {
-  background-color: rgba(220, 38, 38, 0.30);
-  color: #fecaca;
-}
-
-/* Responsive */
-
-@media (max-width: 992px) {
-  .contenedor {
-    width: 95%;
-  }
-
-  .productos {
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  }
-}
-
-@media (max-width: 768px) {
-  .header h1 {
-    font-size: 2rem;
-  }
-
-  .panel {
-    padding: 20px;
-  }
-
-  .botones {
-    flex-direction: column;
-  }
-
-  .btn-editar,
-  .btn-eliminar {
-    width: 100%;
-  }
-
-  .usuario-panel {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .btn-cerrar {
-    width: 100%;
-  }
-}
-
-@media (max-width: 480px) {
-  .header {
-    padding: 18px;
-  }
-
-  .header h1 {
-    font-size: 1.7rem;
-  }
-
-  .panel h2 {
-    font-size: 1.2rem;
-  }
-
-  .resumen span {
-    font-size: 1.7rem;
-  }
-
-  .formulario,
-  .filtros,
-  .productos,
-  .resumen,
-  .auth-contenedor {
-    grid-template-columns: 1fr;
-  }
-
-  .swal2-popup {
-    width: 90% !important;
-  }
-
-  .estado-stock {
-    margin-left: 0;
-    margin-right: 6px;
-  }
-}
-
-/* Lector */
-
-.lector {
-  grid-column: 1 / -1;
-  width: 100%;
-  max-width: 420px;
-  margin: 10px auto;
-  border-radius: 16px;
-  overflow: hidden;
-  background-color: #111;
-  padding: 10px;
-}
-
-#btnEscanear {
-  background: linear-gradient(135deg, #2d6a4f, #52b788);
-  color: white;
-  border: none;
-  cursor: pointer;
-  font-weight: bold;
-}
-
-#btnEscanear:hover {
-  transform: translateY(-2px);
-}
-
-.btn-escanear {
-  background: linear-gradient(90deg,#2563eb,#06b6d4);
-  color:white;
-  border:none;
-  padding:12px;
-  border-radius:10px;
-  cursor:pointer;
-  font-weight:700;
-}
-
-#scanner {
-  margin-top:15px;
-  border-radius:12px;
-  overflow:hidden;
-}
-
-/* Dashboard profesional */
-
-.resumen article:nth-child(4) {
-  border-left: 8px solid #facc15;
-}
-
-.resumen article:nth-child(5) {
-  border-left: 8px solid #dc2626;
-}
-
-.resumen article:nth-child(6) {
-  border-left: 8px solid #22c55e;
-}
-
-/* EXPORTAR E IMPORTAR EXCEL */
-
-.btn-exportar,
-.btn-importar {
-  background: linear-gradient(135deg, #2d6a4f, #52b788);
-  color: white;
-  border: none;
-  cursor: pointer;
-  font-weight: bold;
-  border-radius: 50px;
-  padding: 12px 20px;
-  transition: all 0.3s ease;
-  width: 100%;
-  height: 56px;
-}
-
-.btn-exportar:hover,
-.btn-importar:hover {
-  transform: translateY(-2px);
-  background: linear-gradient(135deg, #1b4332, #40916c);
-}
-
-#inputImportar {
-  width: 100%;
-  height: 56px;
-  padding: 12px;
-  border-radius: 50px;
-  border: 1px solid #666;
-  background: #2b2b2b;
-  color: white;
-  cursor: pointer;
-  font-weight: bold;
-}
-
-.modo-oscuro #inputImportar {
-  background: #2a2a2a;
-  color: white;
-  border: 1px solid #555;
-}
-
-#btnImportarExcel {
-  background: linear-gradient(135deg, #2d6a4f, #52b788) !important;
-  color: white !important;
-  border: none !important;
-  border-radius: 50px !important;
-  height: 56px !important;
-  width: 100% !important;
-  font-weight: bold !important;
-  cursor: pointer !important;
-}
-
-/* DASHBOARD PROFESIONAL */
-
-.card-resumen {
-  position: relative;
-  overflow: hidden;
-  border-left: 8px solid #1d3557;
-  transition: all 0.3s ease;
-}
-
-.card-resumen:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 18px rgba(0,0,0,0.12);
-}
-
-.icono-resumen {
-  display: block;
-  font-size: 2rem;
-  margin-bottom: 8px;
-}
-
-.card-resumen.total {
-  border-left-color: #1d3557;
-}
-
-.card-resumen.por-vencer-card {
-  border-left-color: #facc15;
-}
-
-.card-resumen.vencidos-card {
-  border-left-color: #dc2626;
-}
-
-.card-resumen.stock-bajo-card {
-  border-left-color: #a855f7;
-}
-
-.card-resumen.agotados-card {
-  border-left-color: #7f1d1d;
-}
-
-.card-resumen.valor-card {
-  border-left-color: #22c55e;
-}
-
-.card-resumen.total span:not(.icono-resumen) {
-  color: #1d3557;
-}
-
-.card-resumen.por-vencer-card span:not(.icono-resumen) {
-  color: #ca8a04;
-}
-
-.card-resumen.vencidos-card span:not(.icono-resumen) {
-  color: #dc2626;
-}
-
-.card-resumen.stock-bajo-card span:not(.icono-resumen) {
-  color: #a855f7;
-}
-
-.card-resumen.agotados-card span:not(.icono-resumen) {
-  color: #7f1d1d;
-}
-
-.card-resumen.valor-card span:not(.icono-resumen) {
-  color: #22c55e;
-}
-
-.modo-oscuro .card-resumen.total span:not(.icono-resumen),
-.modo-oscuro .card-resumen.por-vencer-card span:not(.icono-resumen),
-.modo-oscuro .card-resumen.vencidos-card span:not(.icono-resumen),
-.modo-oscuro .card-resumen.stock-bajo-card span:not(.icono-resumen),
-.modo-oscuro .card-resumen.agotados-card span:not(.icono-resumen),
-.modo-oscuro .card-resumen.valor-card span:not(.icono-resumen) {
-  color: #a8dadc;
-}
-/* ========================= */
-/* HISTORIAL DE MOVIMIENTOS */
-/* ========================= */
 
 .movimientos {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 16px;
-  margin-top: 20px;
 }
 
 .card-movimiento {
-  background: rgba(255, 255, 255, 0.92);
-  border-radius: 16px;
-  padding: 16px;
+  background: white;
+  border-radius: var(--radio);
+  padding: 14px;
   border-left: 6px solid #2563eb;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--sombra);
 }
 
-.card-movimiento.crear {
-  border-left-color: #16a34a;
-}
-
-.card-movimiento.editar {
-  border-left-color: #f59e0b;
-}
-
-.card-movimiento.eliminar {
-  border-left-color: #dc2626;
-}
+.card-movimiento.crear { border-left-color: #16a34a; }
+.card-movimiento.editar { border-left-color: #f59e0b; }
+.card-movimiento.eliminar { border-left-color: var(--rojo); }
 
 .movimiento-header {
   display: flex;
@@ -873,13 +452,13 @@ body {
   gap: 10px;
   margin-bottom: 10px;
   font-weight: 700;
-  font-size: 0.9rem;
 }
 
 .accion-movimiento {
-  padding: 5px 10px;
+  padding: 5px 9px;
   border-radius: 999px;
-  font-size: 0.8rem;
+  font-size: .78rem;
+  font-weight: 800;
 }
 
 .accion-movimiento.crear {
@@ -899,233 +478,13 @@ body {
 
 .fecha-movimiento {
   color: #64748b;
-  font-size: 0.8rem;
-}
-
-.card-movimiento h3 {
-  margin: 8px 0;
-  font-size: 1.1rem;
-  color: #0f172a;
+  font-size: .78rem;
 }
 
 .card-movimiento p {
-  margin: 4px 0;
-  font-size: 0.92rem;
-  color: #334155;
-}
-
-.card-movimiento strong {
-  color: #0f172a;
-}
-
-.modo-oscuro .card-movimiento {
-  background: rgba(30, 41, 59, 0.95);
-}
-
-.modo-oscuro .card-movimiento h3,
-.modo-oscuro .card-movimiento strong {
-  color: #f8fafc;
-}
-
-.modo-oscuro .card-movimiento p {
-  color: #cbd5e1;
-}
-
-.modo-oscuro .fecha-movimiento {
-  color: #94a3b8;
-}
-/* ========================= */
-/* BUSCADOR HISTORIAL */
-/* ========================= */
-
-#buscarMovimiento {
-  width: 100%;
-  padding: 12px 14px;
-  margin: 14px 0 18px;
-  border-radius: 14px;
-  border: 1px solid #cbd5e1;
-  outline: none;
-  font-size: 0.95rem;
-  background: #ffffff;
-}
-
-#buscarMovimiento:focus {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
-}
-
-.modo-oscuro #buscarMovimiento {
-  background: #1e293b;
-  color: #f8fafc;
-  border-color: #475569;
-}
-
-.modo-oscuro #buscarMovimiento::placeholder {
-  color: #94a3b8;
-}
-
-/* ========================= */
-/* CARDS PRODUCTOS COMPACTAS */
-/* ========================= */
-
-.card-producto {
-  padding: 14px;
-  border-radius: 16px;
-  gap: 5px;
-}
-
-.card-producto h3 {
-  font-size: 1rem;
-  margin-bottom: 4px;
-}
-
-.card-producto p {
-  margin: 2px 0;
-  font-size: 0.86rem;
-  line-height: 1.25;
-}
-
-.card-producto hr {
-  margin: 7px 0;
-  opacity: 0.25;
-}
-
-.card-producto .estado,
-.card-producto .estado-stock {
-  font-size: 0.78rem;
-  padding: 5px 8px;
-  margin-top: 4px;
-}
-
-.botones {
-  gap: 8px;
-  margin-top: 8px;
-}
-
-.botones button {
-  padding: 8px 10px;
-  font-size: 0.85rem;
-}
-
-/* ========================= */
-/* HISTORIAL MÁS COMPACTO */
-/* ========================= */
-
-.card-movimiento {
-  padding: 14px;
-}
-
-.card-movimiento h3 {
-  font-size: 1rem;
-  margin: 6px 0;
-}
-
-.card-movimiento p {
-  font-size: 0.86rem;
+  font-size: .86rem;
   margin: 3px 0;
 }
-
-.movimiento-header {
-  align-items: center;
-}
-
-.accion-movimiento {
-  font-size: 0.78rem;
-  padding: 5px 9px;
-}
-
-.fecha-movimiento {
-  font-size: 0.78rem;
-}
-/* ========================= */
-/* HISTORIAL DASHBOARD */
-/* ========================= */
-
-.dashboard-historial {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 14px;
-  margin: 15px 0 20px;
-}
-
-.card-dashboard {
-  background: #ffffff;
-  border-radius: 16px;
-  padding: 16px;
-  text-align: center;
-  box-shadow: 0 6px 16px rgba(0,0,0,0.08);
-  border-left: 6px solid #2563eb;
-}
-
-.card-dashboard span {
-  display: block;
-  font-size: 1.8rem;
-  font-weight: 800;
-  margin-bottom: 6px;
-}
-
-.card-dashboard p {
-  font-weight: 700;
-  color: #334155;
-}
-
-.card-dashboard.crear {
-  border-left-color: #22c55e;
-}
-
-.card-dashboard.editar {
-  border-left-color: #f59e0b;
-}
-
-.card-dashboard.eliminar {
-  border-left-color: #ef4444;
-}
-
-/* ========================= */
-/* BARRA HISTORIAL */
-/* ========================= */
-
-.barra-historial {
-  display: grid;
-  grid-template-columns: 1fr 220px 220px;
-  gap: 12px;
-  margin: 16px 0 18px;
-}
-
-#buscarMovimiento,
-#filtroAccion,
-.btn-exportar-historial {
-  width: 100%;
-  padding: 12px 14px;
-  border-radius: 14px;
-  border: 1px solid #cbd5e1;
-  outline: none;
-  font-size: 0.95rem;
-}
-
-#buscarMovimiento:focus,
-#filtroAccion:focus {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
-}
-
-.btn-exportar-historial {
-  background: linear-gradient(135deg, #2d6a4f, #52b788);
-  color: white;
-  border: none;
-  cursor: pointer;
-  font-weight: bold;
-  transition: all 0.3s ease;
-}
-
-.btn-exportar-historial:hover {
-  transform: translateY(-2px);
-  background: linear-gradient(135deg, #1b4332, #40916c);
-}
-
-/* ========================= */
-/* PAGINACIÓN HISTORIAL */
-/* ========================= */
 
 .paginacion-historial {
   display: flex;
@@ -1137,317 +496,89 @@ body {
 
 .paginacion-historial button {
   padding: 10px 16px;
-  border-radius: 12px;
-  border: none;
-  background: linear-gradient(135deg, #1d3557, #457b9d);
-  color: white;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.paginacion-historial button:hover {
-  transform: translateY(-2px);
 }
 
 .paginacion-historial button:disabled {
-  opacity: 0.45;
+  opacity: .45;
   cursor: not-allowed;
-  transform: none;
 }
 
 #paginaActualMovimientos {
   font-weight: bold;
-  color: #1d3557;
+  color: var(--azul-700);
 }
 
-/* ========================= */
-/* MODO OSCURO HISTORIAL PLUS */
-/* ========================= */
+/* EXTRA */
 
-.modo-oscuro .card-dashboard {
-  background: #1e293b;
-  color: #f8fafc;
-}
-
-.modo-oscuro .card-dashboard p {
-  color: #cbd5e1;
-}
-
-.modo-oscuro #filtroAccion,
-.modo-oscuro .btn-exportar-historial {
-  background-color: #1e293b;
-  color: #f8fafc;
-  border-color: #475569;
-}
-
-.modo-oscuro #paginaActualMovimientos {
-  color: #a8dadc;
-}
-
-/* ========================= */
-/* RESPONSIVE HISTORIAL */
-/* ========================= */
-
-@media (max-width: 850px) {
-  .barra-historial {
-    grid-template-columns: 1fr;
-  }
-
-  .paginacion-historial {
-    flex-direction: column;
-  }
-
-  .paginacion-historial button {
-    width: 100%;
-  }
-}
-/* ========================= */
-/* LOTES + FORMULARIO PRODUCTO CORREGIDO */
-/* ========================= */
-
-/*
-  Objetivo:
-  Línea 1: EAN | Escanear | Nombre | Categoría | Precio
-  Línea 2: Lote | Stock | Fecha | + Agregar lote | Agregar producto
-*/
-
-#formProducto.formulario {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1.15fr 1fr 0.75fr;
-  gap: 12px;
-  align-items: center;
-}
-
-#formProducto input,
-#formProducto select,
-#formProducto button {
+.lector {
+  grid-column: 1 / -1;
   width: 100%;
-  height: 50px;
-  min-height: 50px;
-  margin: 0;
-}
-
-/* Primera línea */
-
-#codigoBarras {
-  grid-column: 1;
-}
-
-#btnEscanear {
-  grid-column: 2;
-}
-
-#nombre {
-  grid-column: 3;
-}
-
-#categoria {
-  grid-column: 4;
-}
-
-#precio {
-  grid-column: 5;
-}
-
-/* Segunda línea: los lotes entran directo en la grilla del form */
-
-#contenedorLotes,
-.contenedor-lotes {
-  display: contents;
-}
-
-.fila-lote {
-  display: contents;
-}
-
-.lote-numero {
-  grid-column: 1;
-}
-
-.lote-stock {
-  grid-column: 2;
-}
-
-.lote-vencimiento {
-  grid-column: 3;
-}
-
-#btnAgregarLote {
-  grid-column: 4;
-  background: linear-gradient(135deg, #2563eb, #06b6d4);
-  color: white;
-  border: none;
-  border-radius: 12px;
-  padding: 12px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-#btnAgregarLote:hover {
-  transform: translateY(-2px);
-}
-
-#formProducto > button[type="submit"] {
-  grid-column: 5;
-  background: linear-gradient(135deg, #1d3557, #457b9d);
-  color: white;
-  border: none;
-  border-radius: 12px;
-  padding: 12px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-#formProducto > button[type="submit"]:hover {
-  transform: translateY(-2px);
-}
-
-.btn-quitar-lote {
-  background: #dc2626;
-  color: white;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  height: 50px;
-  font-size: 1rem;
-}
-
-.btn-quitar-lote:hover {
-  background: #b91c1c;
-}
-
-/* Lotes en tarjetas */
-
-.bloque-lotes-card {
-  margin-top: 8px;
+  max-width: 420px;
+  margin: 10px auto;
+  border-radius: var(--radio);
+  overflow: hidden;
+  background: #111;
   padding: 10px;
-  border-radius: 10px;
-  background: rgba(0,0,0,0.04);
 }
 
-.bloque-lotes-card p {
-  margin: 4px 0;
-  font-size: 0.82rem;
+.mensaje-vacio {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 30px;
+  color: #666;
 }
 
-/* Modal lotes */
+/* SWEETALERT */
 
-.fila-lote-modal {
-  display: grid;
-  grid-template-columns: 1fr 110px 170px 50px;
-  gap: 8px;
-  margin-bottom: 8px;
-  align-items: center;
+.swal2-popup {
+  border-radius: 18px;
 }
 
-.btn-quitar-lote-modal {
-  border: none;
-  background: #dc2626;
-  color: white;
-  border-radius: 8px;
-  cursor: pointer;
-  height: 40px;
+.swal2-title {
+  color: var(--azul-700);
 }
 
-/* ========================= */
-/* DASHBOARD GRÁFICOS */
-/* ========================= */
-
-.dashboard-graficos,
-.graficos-dashboard {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 20px;
-  margin-top: 20px;
+.swal2-confirm {
+  background: var(--azul-700) !important;
 }
 
-.card-grafico,
-.grafico-card {
-  background: white;
-  padding: 20px;
-  border-radius: 16px;
-  box-shadow: 0 6px 16px rgba(0,0,0,.08);
-  min-height: 360px;
+.swal2-cancel {
+  background: #d90429 !important;
 }
 
-.card-grafico h3,
-.grafico-card h3 {
-  margin-bottom: 15px;
-  color: #1d3557;
+/* MODO OSCURO */
+
+.modo-oscuro {
+  background: #121212;
+  color: #f1f1f1;
 }
 
-.card-grafico canvas,
-.grafico-card canvas {
-  width: 100% !important;
-  height: 280px !important;
-  max-height: 320px;
-}
-
-/* ========================= */
-/* RESUMEN SUCURSALES */
-/* ========================= */
-
-.card-resumen-sucursal {
-  background: white;
-  padding: 20px;
-  border-radius: 16px;
-  border-left: 8px solid #2563eb;
-  box-shadow: 0 6px 16px rgba(0,0,0,.08);
-}
-
-.card-resumen-sucursal h3 {
-  margin-bottom: 12px;
-  color: #1d3557;
-}
-
-.card-resumen-sucursal p {
-  margin: 6px 0;
-  font-weight: 600;
-}
-
-/* ========================= */
-/* SELECTOR ADMIN */
-/* ========================= */
-
-#selectorSucursalAdmin {
-  margin-top: 12px;
-}
-
-#filtroSucursalAdmin {
-  width: 100%;
-  max-width: 300px;
-  padding: 12px;
-  border-radius: 12px;
-  border: 1px solid #ccc;
-}
-
-/* ========================= */
-/* MODO OSCURO EXTRA */
-/* ========================= */
-
-.modo-oscuro .bloque-lotes-card {
-  background: rgba(255,255,255,.05);
-}
-
-.modo-oscuro .card-grafico,
+.modo-oscuro .panel,
+.modo-oscuro .resumen article,
+.modo-oscuro .card-dashboard,
 .modo-oscuro .grafico-card,
-.modo-oscuro .card-resumen-sucursal {
+.modo-oscuro .card-producto,
+.modo-oscuro .card-movimiento,
+.modo-oscuro .formulario-auth {
   background: #1e1e1e;
+  color: #f1f1f1;
+}
+
+.modo-oscuro input,
+.modo-oscuro select {
+  background: #2a2a2a;
   color: white;
+  border: 1px solid #555;
 }
 
-.modo-oscuro .card-grafico h3,
+.modo-oscuro .panel h2,
+.modo-oscuro .card-producto h3,
 .modo-oscuro .grafico-card h3,
-.modo-oscuro .card-resumen-sucursal h3 {
-  color: #a8dadc;
+.modo-oscuro .resumen span {
+  color: var(--azul-300);
 }
 
-/* ========================= */
-/* RESPONSIVE FINAL */
-/* ========================= */
+/* RESPONSIVE */
 
 @media (max-width: 1100px) {
   #formProducto.formulario {
@@ -1468,79 +599,183 @@ body {
   }
 }
 
+@media (max-width: 992px) {
+  .graficos-dashboard,
+  .barra-historial {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 768px) {
+  .header h1 {
+    font-size: 2rem;
+  }
+
+  .panel {
+    padding: 20px;
+  }
+
   #formProducto.formulario {
     grid-template-columns: 1fr;
   }
 
-  .fila-lote-modal {
-    grid-template-columns: 1fr;
+  .usuario-panel,
+  .botones,
+  .paginacion-historial {
+    flex-direction: column;
   }
 
-  .dashboard-graficos,
-  .graficos-dashboard {
-    grid-template-columns: 1fr;
+  .btn-cerrar,
+  .btn-editar,
+  .btn-eliminar,
+  .paginacion-historial button {
+    width: 100%;
   }
 }
-.graficos-dashboard {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 22px;
-}
 
-.grafico-card {
-  min-height: 360px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
+@media (max-width: 480px) {
+  .header h1 {
+    font-size: 1.7rem;
+  }
 
-.grafico-card canvas {
-  width: 100% !important;
-  max-height: 280px !important;
-}
+  .resumen span {
+    font-size: 1.7rem;
+  }
 
-@media (max-width: 850px) {
-  .graficos-dashboard {
-    grid-template-columns: 1fr;
+  .grafico-card canvas {
+    height: 240px !important;
   }
 }
-.barra-historial {
-  display: grid;
-  grid-template-columns: 1fr 220px 220px;
-  gap: 14px;
-  align-items: center;
+.btn-modo {
+  margin-top: 15px;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 12px;
+  background: white;
+  color: var(--azul-700);
+  font-weight: bold;
+  cursor: pointer;
+  transition: all .3s ease;
 }
 
-.barra-historial input,
-.barra-historial select,
-.barra-historial button {
-  height: 58px;
-  padding: 0 18px;
-  border-radius: 16px;
-  font-size: 1rem;
-  font-weight: 700;
-  box-sizing: border-box;
+.btn-modo:hover {
+  transform: translateY(-2px);
+  background: #f1f5f9;
+}
+.modo-oscuro .btn-modo {
+  background: #2a2a2a;
+  color: white;
+  border: 1px solid #555;
+}
+.borde-verde-violeta{
+  border-left: 8px solid;
+  border-image: linear-gradient(
+    to bottom,
+    #22c55e 50%,
+    #a855f7 50%
+  ) 1;
 }
 
-#buscarMovimiento {
-  margin: 0;
+.borde-verde-rojo{
+  border-left: 8px solid;
+  border-image: linear-gradient(
+    to bottom,
+    #22c55e 50%,
+    #ef4444 50%
+  ) 1;
 }
 
-#filtroAccion {
-  margin: 0;
+.borde-amarillo-violeta{
+  border-left: 8px solid;
+  border-image: linear-gradient(
+    to bottom,
+    #facc15 50%,
+    #a855f7 50%
+  ) 1;
 }
 
-.btn-exportar-historial {
-  margin: 0;
-  height: 58px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.borde-rojo-violeta{
+  border-left: 8px solid;
+  border-image: linear-gradient(
+    to bottom,
+    #ef4444 50%,
+    #a855f7 50%
+  ) 1;
+}
+/* ========================= */
+/* MODAL EDITAR PRODUCTO */
+/* ========================= */
+
+.swal2-popup {
+  border-radius: 22px !important;
+  padding: 28px !important;
 }
 
-@media (max-width: 850px) {
-  .barra-historial {
-    grid-template-columns: 1fr;
-  }
+.swal2-title {
+  color: #1d3557 !important;
+  font-size: 2rem !important;
+  font-weight: 800 !important;
+}
+
+.swal2-html-container {
+  margin: 0 !important;
+}
+
+.swal2-input,
+.swal2-select {
+  width: 85% !important;
+  height: 48px !important;
+  margin: 8px auto !important;
+  padding: 10px 14px !important;
+  border-radius: 12px !important;
+  border: 1px solid #cbd5e1 !important;
+  background: #ffffff !important;
+  color: #1f2937 !important;
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  box-shadow: none !important;
+}
+
+.swal2-input:focus,
+.swal2-select:focus {
+  border-color: #457b9d !important;
+  box-shadow: 0 0 0 3px rgba(69, 123, 157, 0.18) !important;
+}
+
+.swal2-actions {
+  gap: 12px !important;
+}
+
+.swal2-confirm,
+.swal2-cancel {
+  min-width: 150px !important;
+  height: 44px !important;
+  border-radius: 12px !important;
+  font-weight: 800 !important;
+}
+
+.swal2-confirm {
+  background: linear-gradient(135deg, #1d3557, #457b9d) !important;
+}
+
+.swal2-cancel {
+  background: linear-gradient(135deg, #d90429, #ef233c) !important;
+}
+
+/* Modo oscuro modal */
+
+.modo-oscuro .swal2-popup {
+  background: #1e1e1e !important;
+  color: #f8fafc !important;
+}
+
+.modo-oscuro .swal2-title {
+  color: #a8dadc !important;
+}
+
+.modo-oscuro .swal2-input,
+.modo-oscuro .swal2-select {
+  background: #2a2a2a !important;
+  color: #ffffff !important;
+  border-color: #555 !important;
 }
