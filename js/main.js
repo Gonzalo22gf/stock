@@ -51,6 +51,16 @@ const inputImportar = document.querySelector("#inputImportar");
 const btnImportarExcel = document.querySelector("#btnImportarExcel");
 const btnExportarExcel = document.querySelector("#btnExportarExcel");
 
+const graficoEstados = document.querySelector("#graficoEstados");
+const graficoCategorias = document.querySelector("#graficoCategorias");
+const graficoStockCategorias = document.querySelector("#graficoStockCategorias");
+const graficoValorInventario = document.querySelector("#graficoValorInventario");
+
+let chartEstados = null;
+let chartCategorias = null;
+let chartStockCategorias = null;
+let chartValorInventario = null;
+
 let productos = [];
 let movimientos = [];
 let movimientosFiltradosActuales = [];
@@ -703,6 +713,7 @@ async function cargarProductosAPI() {
     renderizarProductos(productos);
     actualizarResumen(productos);
     mostrarAlertasVencimiento();
+    actualizarGraficos(productos);
   } catch (error) {
     Swal.fire({
       icon: "error",
@@ -887,13 +898,22 @@ async function agregarProducto(e) {
 
   const nombre = document.querySelector("#nombre").value.trim();
   const categoria = document.querySelector("#categoria").value;
-  const stock = Number(document.querySelector("#stock").value);
   const precio = Number(document.querySelector("#precio").value);
-  const vencimiento = document.querySelector("#vencimiento").value;
   const codigoBarras = codigoBarrasInput.value.trim();
-  const lote = loteInput.value.trim();
 
-  if (!nombre || !categoria || stock < 0 || precio <= 0 || !vencimiento) {
+  const filasLotes = document.querySelectorAll(".fila-lote");
+
+  const lotes = Array.from(filasLotes)
+    .map((fila) => {
+      return {
+        numero: fila.querySelector(".lote-numero").value.trim(),
+        stock: Number(fila.querySelector(".lote-stock").value),
+        vencimiento: fila.querySelector(".lote-vencimiento").value
+      };
+    })
+    .filter((lote) => lote.stock >= 0 && lote.vencimiento);
+
+  if (!nombre || !categoria || precio <= 0 || lotes.length === 0) {
     Swal.fire({
       icon: "warning",
       title: "Datos incompletos",
@@ -903,14 +923,21 @@ async function agregarProducto(e) {
     return;
   }
 
+  const stockTotal = lotes.reduce((total, lote) => total + lote.stock, 0);
+  const lotePrincipal = lotes[0].numero || "";
+  const vencimientoPrincipal = lotes
+    .map((lote) => lote.vencimiento)
+    .sort()[0];
+
   const nuevoProducto = {
     nombre,
     categoria,
-    stock,
     precio,
-    vencimiento,
     codigoBarras,
-    lote
+    lote: lotePrincipal,
+    stock: stockTotal,
+    vencimiento: vencimientoPrincipal,
+    lotes
   };
 
   if (usuarioActivo?.rol === "admin" && sucursalSeleccionada) {
@@ -947,7 +974,7 @@ async function agregarProducto(e) {
     Swal.fire({
       icon: "success",
       title: "Producto agregado",
-      text: "El producto fue guardado con lote.",
+      text: "El producto fue guardado correctamente.",
       timer: 1800,
       showConfirmButton: false
     });
@@ -1570,4 +1597,111 @@ function convertirFechaImportada(fecha) {
   }
 
   return fecha;
+}
+function actualizarGraficos(listaProductos) {
+  if (!window.Chart) return;
+
+  destruirGraficos();
+
+  const totalOk = listaProductos.filter(
+    (p) => obtenerEstadoProducto(p.vencimiento).clase === "ok"
+  ).length;
+
+  const totalPorVencer = listaProductos.filter(
+    (p) => obtenerEstadoProducto(p.vencimiento).clase === "por-vencer"
+  ).length;
+
+  const totalVencidos = listaProductos.filter(
+    (p) => obtenerEstadoProducto(p.vencimiento).clase === "vencido"
+  ).length;
+
+  const categorias = {};
+
+  listaProductos.forEach((producto) => {
+    if (!categorias[producto.categoria]) {
+      categorias[producto.categoria] = {
+        cantidad: 0,
+        stock: 0,
+        valor: 0
+      };
+    }
+
+    categorias[producto.categoria].cantidad += 1;
+    categorias[producto.categoria].stock += Number(producto.stock || 0);
+    categorias[producto.categoria].valor +=
+      Number(producto.stock || 0) * Number(producto.precio || 0);
+  });
+
+  const nombresCategorias = Object.keys(categorias);
+
+  if (graficoEstados) {
+    chartEstados = new Chart(graficoEstados, {
+      type: "doughnut",
+      data: {
+        labels: ["En buen estado", "Por vencer", "Vencidos"],
+        datasets: [
+          {
+            data: [totalOk, totalPorVencer, totalVencidos]
+          }
+        ]
+      }
+    });
+  }
+
+  if (graficoCategorias) {
+    chartCategorias = new Chart(graficoCategorias, {
+      type: "bar",
+      data: {
+        labels: nombresCategorias,
+        datasets: [
+          {
+            label: "Productos",
+            data: nombresCategorias.map((cat) => categorias[cat].cantidad)
+          }
+        ]
+      }
+    });
+  }
+
+  if (graficoStockCategorias) {
+    chartStockCategorias = new Chart(graficoStockCategorias, {
+      type: "bar",
+      data: {
+        labels: nombresCategorias,
+        datasets: [
+          {
+            label: "Stock",
+            data: nombresCategorias.map((cat) => categorias[cat].stock)
+          }
+        ]
+      }
+    });
+  }
+
+  if (graficoValorInventario) {
+    chartValorInventario = new Chart(graficoValorInventario, {
+      type: "bar",
+      data: {
+        labels: nombresCategorias,
+        datasets: [
+          {
+            label: "Valor inventario",
+            data: nombresCategorias.map((cat) => categorias[cat].valor)
+          }
+        ]
+      }
+    });
+  }
+}
+
+function destruirGraficos() {
+  if (chartEstados) chartEstados.destroy();
+  if (chartCategorias) chartCategorias.destroy();
+  if (chartStockCategorias) chartStockCategorias.destroy();
+  if (chartValorInventario) chartValorInventario.destroy();
+
+  chartEstados = null;
+  chartCategorias = null;
+  chartStockCategorias = null;
+  chartValorInventario = null;
 }

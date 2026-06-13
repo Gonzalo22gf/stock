@@ -1203,21 +1203,106 @@ body {
   }
 }
 /* ========================= */
-/* LOTES */
+/* LOTES + FORMULARIO PRODUCTO CORREGIDO */
 /* ========================= */
 
-#contenedorLotes {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-top: 10px;
+/*
+  Objetivo:
+  Línea 1: EAN | Escanear | Nombre | Categoría | Precio
+  Línea 2: Lote | Stock | Fecha | + Agregar lote | Agregar producto
+*/
+
+#formProducto.formulario {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.15fr 1fr 0.75fr;
+  gap: 12px;
+  align-items: center;
+}
+
+#formProducto input,
+#formProducto select,
+#formProducto button {
+  width: 100%;
+  height: 50px;
+  min-height: 50px;
+  margin: 0;
+}
+
+/* Primera línea */
+
+#codigoBarras {
+  grid-column: 1;
+}
+
+#btnEscanear {
+  grid-column: 2;
+}
+
+#nombre {
+  grid-column: 3;
+}
+
+#categoria {
+  grid-column: 4;
+}
+
+#precio {
+  grid-column: 5;
+}
+
+/* Segunda línea: los lotes entran directo en la grilla del form */
+
+#contenedorLotes,
+.contenedor-lotes {
+  display: contents;
 }
 
 .fila-lote {
-  display: grid;
-  grid-template-columns: 1fr 120px 180px 60px;
-  gap: 10px;
-  align-items: center;
+  display: contents;
+}
+
+.lote-numero {
+  grid-column: 1;
+}
+
+.lote-stock {
+  grid-column: 2;
+}
+
+.lote-vencimiento {
+  grid-column: 3;
+}
+
+#btnAgregarLote {
+  grid-column: 4;
+  background: linear-gradient(135deg, #2563eb, #06b6d4);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+#btnAgregarLote:hover {
+  transform: translateY(-2px);
+}
+
+#formProducto > button[type="submit"] {
+  grid-column: 5;
+  background: linear-gradient(135deg, #1d3557, #457b9d);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+#formProducto > button[type="submit"]:hover {
+  transform: translateY(-2px);
 }
 
 .btn-quitar-lote {
@@ -1226,7 +1311,7 @@ body {
   border: none;
   border-radius: 10px;
   cursor: pointer;
-  height: 46px;
+  height: 50px;
   font-size: 1rem;
 }
 
@@ -1234,23 +1319,7 @@ body {
   background: #b91c1c;
 }
 
-#btnAgregarLote {
-  background: linear-gradient(135deg,#2563eb,#06b6d4);
-  color: white;
-  border: none;
-  border-radius: 12px;
-  padding: 12px;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-#btnAgregarLote:hover {
-  transform: translateY(-2px);
-}
-
-/* ========================= */
-/* LOTES EN TARJETAS */
-/* ========================= */
+/* Lotes en tarjetas */
 
 .bloque-lotes-card {
   margin-top: 8px;
@@ -1264,9 +1333,7 @@ body {
   font-size: 0.82rem;
 }
 
-/* ========================= */
-/* MODAL LOTES */
-/* ========================= */
+/* Modal lotes */
 
 .fila-lote-modal {
   display: grid;
@@ -1289,27 +1356,33 @@ body {
 /* DASHBOARD GRÁFICOS */
 /* ========================= */
 
-.dashboard-graficos {
+.dashboard-graficos,
+.graficos-dashboard {
   display: grid;
-  grid-template-columns: repeat(auto-fit,minmax(320px,1fr));
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 20px;
   margin-top: 20px;
 }
 
-.card-grafico {
+.card-grafico,
+.grafico-card {
   background: white;
   padding: 20px;
   border-radius: 16px;
   box-shadow: 0 6px 16px rgba(0,0,0,.08);
+  min-height: 360px;
 }
 
-.card-grafico h3 {
+.card-grafico h3,
+.grafico-card h3 {
   margin-bottom: 15px;
   color: #1d3557;
 }
 
-.card-grafico canvas {
+.card-grafico canvas,
+.grafico-card canvas {
   width: 100% !important;
+  height: 280px !important;
   max-height: 320px;
 }
 
@@ -1352,7 +1425,7 @@ body {
 }
 
 /* ========================= */
-/* MODO OSCURO */
+/* MODO OSCURO EXTRA */
 /* ========================= */
 
 .modo-oscuro .bloque-lotes-card {
@@ -1360,112 +1433,114 @@ body {
 }
 
 .modo-oscuro .card-grafico,
+.modo-oscuro .grafico-card,
 .modo-oscuro .card-resumen-sucursal {
   background: #1e1e1e;
   color: white;
 }
 
 .modo-oscuro .card-grafico h3,
+.modo-oscuro .grafico-card h3,
 .modo-oscuro .card-resumen-sucursal h3 {
   color: #a8dadc;
 }
 
 /* ========================= */
-/* RESPONSIVE */
+/* RESPONSIVE FINAL */
 /* ========================= */
 
-@media (max-width: 768px) {
+@media (max-width: 1100px) {
+  #formProducto.formulario {
+    grid-template-columns: repeat(3, 1fr);
+  }
 
-  .fila-lote,
+  #codigoBarras,
+  #btnEscanear,
+  #nombre,
+  #categoria,
+  #precio,
+  .lote-numero,
+  .lote-stock,
+  .lote-vencimiento,
+  #btnAgregarLote,
+  #formProducto > button[type="submit"] {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  #formProducto.formulario {
+    grid-template-columns: 1fr;
+  }
+
   .fila-lote-modal {
     grid-template-columns: 1fr;
   }
 
-  .dashboard-graficos {
+  .dashboard-graficos,
+  .graficos-dashboard {
     grid-template-columns: 1fr;
   }
 }
-/* Ajuste formulario lotes */
+.graficos-dashboard {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 22px;
+}
 
-.contenedor-lotes {
-  grid-column: 1 / -1;
+.grafico-card {
+  min-height: 360px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  justify-content: center;
 }
 
-.fila-lote {
-  display: grid;
-  grid-template-columns: 1fr 140px 180px 55px;
-  gap: 12px;
-  align-items: center;
+.grafico-card canvas {
+  width: 100% !important;
+  max-height: 280px !important;
 }
 
-.fila-lote input {
-  width: 100%;
-}
-
-#btnAgregarLote {
-  grid-column: 1 / -1;
-  background: linear-gradient(135deg, #2563eb, #06b6d4);
-  color: white;
-  border: none;
-  border-radius: 14px;
-  padding: 14px;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-.btn-quitar-lote {
-  height: 46px;
-  border: none;
-  border-radius: 10px;
-  background: #dc2626;
-  color: white;
-  cursor: pointer;
-}
-
-@media (max-width: 768px) {
-  .fila-lote {
+@media (max-width: 850px) {
+  .graficos-dashboard {
     grid-template-columns: 1fr;
   }
 }
-/* FORMULARIO LOTES MEJORADO */
+.barra-historial {
+  display: grid;
+  grid-template-columns: 1fr 220px 220px;
+  gap: 14px;
+  align-items: center;
+}
 
-#contenedorLotes {
-  grid-column: 1 / -1;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.12);
+.barra-historial input,
+.barra-historial select,
+.barra-historial button {
+  height: 58px;
+  padding: 0 18px;
   border-radius: 16px;
-  padding: 14px;
+  font-size: 1rem;
+  font-weight: 700;
+  box-sizing: border-box;
 }
 
-.fila-lote {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1.4fr 48px;
-  gap: 12px;
+#buscarMovimiento {
+  margin: 0;
+}
+
+#filtroAccion {
+  margin: 0;
+}
+
+.btn-exportar-historial {
+  margin: 0;
+  height: 58px;
+  display: flex;
   align-items: center;
+  justify-content: center;
 }
 
-#btnAgregarLote {
-  grid-column: 1 / -1;
-  max-width: 260px;
-  justify-self: start;
-  margin-top: 4px;
-}
-
-#formProducto > button[type="submit"] {
-  max-width: 260px;
-}
-
-@media (max-width: 900px) {
-  .fila-lote {
+@media (max-width: 850px) {
+  .barra-historial {
     grid-template-columns: 1fr;
-  }
-
-  #btnAgregarLote,
-  #formProducto > button[type="submit"] {
-    max-width: 100%;
-    width: 100%;
   }
 }
