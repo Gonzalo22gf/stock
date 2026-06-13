@@ -15,6 +15,8 @@ const resumenSucursales = document.querySelector("#resumenSucursales");
 
 const filtroCategoria = document.querySelector("#filtroCategoria");
 const contenedorProductos = document.querySelector("#contenedorProductos");
+const contenedorMovimientos = document.querySelector("#contenedorMovimientos");
+
 const formProducto = document.querySelector("#formProducto");
 const buscador = document.querySelector("#buscador");
 const filtroEstado = document.querySelector("#filtroEstado");
@@ -68,6 +70,7 @@ async function iniciarApp() {
     }
 
     await cargarProductosAPI();
+    await cargarMovimientosAPI();
   } else {
     mostrarAuth();
   }
@@ -90,6 +93,10 @@ function mostrarAuth() {
 
   if (selectorAdmin) {
     selectorAdmin.remove();
+  }
+
+  if (contenedorMovimientos) {
+    contenedorMovimientos.innerHTML = "";
   }
 }
 
@@ -161,6 +168,7 @@ function crearSelectorSucursales() {
     sucursalSeleccionada = e.target.value;
     await cargarProductosAPI();
     await cargarResumenSucursales();
+    await cargarMovimientosAPI();
   });
 }
 
@@ -272,6 +280,86 @@ async function cargarResumenSucursales() {
   }
 }
 
+async function cargarMovimientosAPI() {
+  if (!contenedorMovimientos) return;
+
+  try {
+    let url = `${API_URL}/api/movimientos`;
+
+    if (usuarioActivo?.rol === "admin" && sucursalSeleccionada) {
+      url += `?sucursal=${sucursalSeleccionada}`;
+    }
+
+    const respuesta = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+
+    const data = await respuesta.json();
+
+    if (!respuesta.ok) {
+      throw new Error(data.mensaje || "Error al cargar movimientos");
+    }
+
+    renderizarMovimientos(data);
+  } catch (error) {
+    console.error("ERROR MOVIMIENTOS:", error);
+
+    contenedorMovimientos.innerHTML = `
+      <p class="mensaje-vacio">No se pudo cargar el historial.</p>
+    `;
+  }
+}
+
+function renderizarMovimientos(movimientos) {
+  contenedorMovimientos.innerHTML = "";
+
+  if (!movimientos || movimientos.length === 0) {
+    contenedorMovimientos.innerHTML = `
+      <p class="mensaje-vacio">Todavía no hay movimientos registrados.</p>
+    `;
+    return;
+  }
+
+  movimientos.forEach((movimiento) => {
+    const card = document.createElement("article");
+    card.classList.add("card-movimiento");
+
+    const claseAccion = movimiento.accion.toLowerCase();
+
+    card.classList.add(claseAccion);
+
+    card.innerHTML = `
+      <div class="movimiento-header">
+        <span class="accion-movimiento ${claseAccion}">
+          ${obtenerIconoAccion(movimiento.accion)} ${movimiento.accion}
+        </span>
+        <span class="fecha-movimiento">
+          ${formatearFechaHora(movimiento.createdAt)}
+        </span>
+      </div>
+
+      <h3>${movimiento.nombreProducto}</h3>
+
+      <p><strong>Lote:</strong> ${movimiento.lote || "Sin lote"}</p>
+      <p><strong>Usuario:</strong> ${movimiento.usuario?.nombre || "Sin datos"}</p>
+      <p><strong>Sucursal:</strong> ${movimiento.sucursal?.nombre || "Sin sucursal"}</p>
+      <p><strong>Detalle:</strong> ${movimiento.detalle || "Sin detalle"}</p>
+    `;
+
+    contenedorMovimientos.appendChild(card);
+  });
+}
+
+function obtenerIconoAccion(accion) {
+  if (accion === "CREAR") return "🟢";
+  if (accion === "EDITAR") return "🟡";
+  if (accion === "ELIMINAR") return "🔴";
+
+  return "📋";
+}
+
 formRegistro.addEventListener("submit", registrarUsuario);
 
 async function registrarUsuario(e) {
@@ -310,6 +398,7 @@ async function registrarUsuario(e) {
     }
 
     await cargarProductosAPI();
+    await cargarMovimientosAPI();
 
     Swal.fire({
       icon: "success",
@@ -362,6 +451,7 @@ async function iniciarSesion(e) {
     }
 
     await cargarProductosAPI();
+    await cargarMovimientosAPI();
 
     Swal.fire({
       icon: "success",
@@ -414,6 +504,10 @@ function cerrarSesion() {
 
   if (resumenSucursales) {
     resumenSucursales.innerHTML = "";
+  }
+
+  if (contenedorMovimientos) {
+    contenedorMovimientos.innerHTML = "";
   }
 
   renderizarProductos([]);
@@ -694,6 +788,8 @@ async function agregarProducto(e) {
       await cargarResumenSucursales();
     }
 
+    await cargarMovimientosAPI();
+
     formProducto.reset();
 
     Swal.fire({
@@ -758,6 +854,8 @@ async function eliminarProducto(idProducto) {
         if (usuarioActivo?.rol === "admin") {
           await cargarResumenSucursales();
         }
+
+        await cargarMovimientosAPI();
 
         Swal.fire({
           icon: "success",
@@ -867,6 +965,8 @@ function editarProducto(idProducto) {
         if (usuarioActivo?.rol === "admin") {
           await cargarResumenSucursales();
         }
+
+        await cargarMovimientosAPI();
 
         Swal.fire({
           icon: "success",
@@ -1258,6 +1358,8 @@ function importarExcel() {
       if (usuarioActivo?.rol === "admin") {
         await cargarResumenSucursales();
       }
+
+      await cargarMovimientosAPI();
 
       inputImportar.value = "";
 
