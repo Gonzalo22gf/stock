@@ -9,6 +9,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11" defer></script>
   <script src="https://unpkg.com/html5-qrcode" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
   <script src="./js/main.js" defer></script>
 </head>
 
@@ -32,23 +33,8 @@
         <form id="formLogin" class="formulario-auth" autocomplete="off">
           <h3>Iniciar sesión</h3>
 
-          <input
-            type="email"
-            id="loginEmail"
-            placeholder="Email"
-            required
-            autocomplete="off"
-            autocapitalize="none"
-            spellcheck="false"
-          >
-
-          <input
-            type="password"
-            id="loginPassword"
-            placeholder="Contraseña"
-            required
-            autocomplete="new-password"
-          >
+          <input type="email" id="loginEmail" placeholder="Email" required autocomplete="off" autocapitalize="none" spellcheck="false">
+          <input type="password" id="loginPassword" placeholder="Contraseña" required autocomplete="new-password">
 
           <button type="submit">Ingresar</button>
         </form>
@@ -56,49 +42,11 @@
         <form id="formRegistro" class="formulario-auth" autocomplete="off">
           <h3>Registrar sucursal</h3>
 
-          <input
-            type="text"
-            id="registroNombre"
-            placeholder="Nombre del usuario"
-            required
-            autocomplete="off"
-            spellcheck="false"
-          >
-
-          <input
-            type="email"
-            id="registroEmail"
-            placeholder="Email"
-            required
-            autocomplete="off"
-            autocapitalize="none"
-            spellcheck="false"
-          >
-
-          <input
-            type="password"
-            id="registroPassword"
-            placeholder="Contraseña"
-            required
-            autocomplete="new-password"
-          >
-
-          <input
-            type="text"
-            id="registroSucursal"
-            placeholder="Nombre de la sucursal"
-            required
-            autocomplete="off"
-            spellcheck="false"
-          >
-
-          <input
-            type="text"
-            id="registroDireccion"
-            placeholder="Dirección de la sucursal"
-            autocomplete="off"
-            spellcheck="false"
-          >
+          <input type="text" id="registroNombre" placeholder="Nombre del usuario" required autocomplete="off" spellcheck="false">
+          <input type="email" id="registroEmail" placeholder="Email" required autocomplete="off" autocapitalize="none" spellcheck="false">
+          <input type="password" id="registroPassword" placeholder="Contraseña" required autocomplete="new-password">
+          <input type="text" id="registroSucursal" placeholder="Nombre de la sucursal" required autocomplete="off" spellcheck="false">
+          <input type="text" id="registroDireccion" placeholder="Dirección de la sucursal" autocomplete="off" spellcheck="false">
 
           <button type="submit">Registrarse</button>
         </form>
@@ -161,23 +109,6 @@
         </select>
 
         <input
-          type="text"
-          id="lote"
-          placeholder="Lote del producto"
-          autocomplete="off"
-          spellcheck="false"
-        >
-
-        <input
-          type="number"
-          id="stock"
-          placeholder="Stock"
-          min="1"
-          required
-          autocomplete="off"
-        >
-
-        <input
           type="number"
           id="precio"
           placeholder="Precio"
@@ -186,12 +117,41 @@
           autocomplete="off"
         >
 
-        <input
-          type="date"
-          id="vencimiento"
-          required
-          autocomplete="off"
-        >
+        <div id="contenedorLotes" class="contenedor-lotes">
+          <div class="fila-lote">
+            <input
+              type="text"
+              class="lote-numero"
+              placeholder="Lote"
+              autocomplete="off"
+              spellcheck="false"
+            >
+
+            <input
+              type="number"
+              class="lote-stock"
+              placeholder="Stock"
+              min="0"
+              required
+              autocomplete="off"
+            >
+
+            <input
+              type="date"
+              class="lote-vencimiento"
+              required
+              autocomplete="off"
+            >
+          </div>
+        </div>
+
+        <button id="btnAgregarLote" type="button">
+          ➕ Agregar lote
+        </button>
+
+        <input type="hidden" id="lote">
+        <input type="hidden" id="stock">
+        <input type="hidden" id="vencimiento">
 
         <button type="submit">Agregar producto</button>
       </form>
@@ -286,6 +246,32 @@
       </article>
     </section>
 
+    <section id="dashboardGraficos" class="panel seccion-app oculto">
+      <h2>📊 Dashboard Ejecutivo</h2>
+
+      <div class="graficos-dashboard">
+        <div class="grafico-card">
+          <h3>Productos por estado</h3>
+          <canvas id="graficoEstados"></canvas>
+        </div>
+
+        <div class="grafico-card">
+          <h3>Productos por categoría</h3>
+          <canvas id="graficoCategorias"></canvas>
+        </div>
+
+        <div class="grafico-card">
+          <h3>Stock por categoría</h3>
+          <canvas id="graficoStockCategorias"></canvas>
+        </div>
+
+        <div class="grafico-card">
+          <h3>Valor de inventario</h3>
+          <canvas id="graficoValorInventario"></canvas>
+        </div>
+      </div>
+    </section>
+
     <section class="panel seccion-app oculto">
       <h2>Listado de productos</h2>
 
@@ -297,8 +283,64 @@
     <section id="seccionHistorial" class="panel seccion-app oculto">
       <h2>📋 Historial de movimientos</h2>
 
+      <div class="dashboard-historial">
+        <article class="card-dashboard crear">
+          <span id="totalCrear">0</span>
+          <p>🟢 Creados hoy</p>
+        </article>
+
+        <article class="card-dashboard editar">
+          <span id="totalEditar">0</span>
+          <p>🟡 Editados hoy</p>
+        </article>
+
+        <article class="card-dashboard eliminar">
+          <span id="totalEliminar">0</span>
+          <p>🔴 Eliminados hoy</p>
+        </article>
+      </div>
+
+      <div class="barra-historial">
+        <input
+          type="text"
+          id="buscarMovimiento"
+          placeholder="Buscar producto, usuario o acción..."
+          autocomplete="off"
+          spellcheck="false"
+        >
+
+        <select id="filtroAccion">
+          <option value="todos">Todas las acciones</option>
+          <option value="CREAR">Crear</option>
+          <option value="EDITAR">Editar</option>
+          <option value="ELIMINAR">Eliminar</option>
+        </select>
+
+        <button
+          id="btnExportarMovimientos"
+          class="btn-exportar-historial"
+          type="button"
+        >
+          📄 Exportar historial
+        </button>
+      </div>
+
       <div id="contenedorMovimientos" class="movimientos">
         <!-- Movimientos cargados con JavaScript -->
+      </div>
+
+      <div class="paginacion-historial">
+        <button id="btnAnteriorMovimientos" type="button">
+          ⬅ Anterior
+        </button>
+
+        <span id="paginaActualMovimientos">
+          Página 1
+        </span>
+
+        <button id="btnSiguienteMovimientos" type="button">
+          Siguiente ➡
+        </button>
       </div>
     </section>
   </main>

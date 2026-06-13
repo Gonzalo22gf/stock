@@ -16,6 +16,17 @@ const resumenSucursales = document.querySelector("#resumenSucursales");
 const filtroCategoria = document.querySelector("#filtroCategoria");
 const contenedorProductos = document.querySelector("#contenedorProductos");
 const contenedorMovimientos = document.querySelector("#contenedorMovimientos");
+const buscarMovimiento = document.querySelector("#buscarMovimiento");
+const filtroAccion = document.querySelector("#filtroAccion");
+
+const totalCrear = document.querySelector("#totalCrear");
+const totalEditar = document.querySelector("#totalEditar");
+const totalEliminar = document.querySelector("#totalEliminar");
+
+const btnExportarMovimientos = document.querySelector("#btnExportarMovimientos");
+const btnAnteriorMovimientos = document.querySelector("#btnAnteriorMovimientos");
+const btnSiguienteMovimientos = document.querySelector("#btnSiguienteMovimientos");
+const paginaActualMovimientos = document.querySelector("#paginaActualMovimientos");
 
 const formProducto = document.querySelector("#formProducto");
 const buscador = document.querySelector("#buscador");
@@ -40,12 +51,14 @@ const inputImportar = document.querySelector("#inputImportar");
 const btnImportarExcel = document.querySelector("#btnImportarExcel");
 const btnExportarExcel = document.querySelector("#btnExportarExcel");
 
-btnImportarExcel?.addEventListener("click", importarExcel);
-btnExportarExcel?.addEventListener("click", exportarExcel);
-
 let productos = [];
+let movimientos = [];
+let movimientosFiltradosActuales = [];
 let sucursales = [];
 let sucursalSeleccionada = "";
+
+let paginaMovimientos = 1;
+const movimientosPorPagina = 12;
 
 let token = localStorage.getItem("tokenStockAlert") || "";
 let usuarioActivo =
@@ -56,9 +69,25 @@ let html5QrCode = null;
 
 document.addEventListener("DOMContentLoaded", iniciarApp);
 
+btnImportarExcel?.addEventListener("click", importarExcel);
+btnExportarExcel?.addEventListener("click", exportarExcel);
+
+buscarMovimiento?.addEventListener("input", () => {
+  paginaMovimientos = 1;
+  aplicarFiltroMovimientos();
+});
+
+filtroAccion?.addEventListener("change", () => {
+  paginaMovimientos = 1;
+  aplicarFiltroMovimientos();
+});
+
+btnExportarMovimientos?.addEventListener("click", exportarMovimientos);
+btnAnteriorMovimientos?.addEventListener("click", paginaAnteriorMovimientos);
+btnSiguienteMovimientos?.addEventListener("click", paginaSiguienteMovimientos);
+
 async function iniciarApp() {
   btnEscanear?.addEventListener("click", iniciarEscaner);
-
   aplicarModoGuardado();
 
   if (token && usuarioActivo) {
@@ -80,9 +109,7 @@ function mostrarAuth() {
   seccionAuth.classList.remove("oculto");
   seccionUsuario.classList.add("oculto");
 
-  seccionesApp.forEach((seccion) => {
-    seccion.classList.add("oculto");
-  });
+  seccionesApp.forEach((seccion) => seccion.classList.add("oculto"));
 
   panelAdminGlobal?.classList.add("oculto");
 
@@ -90,23 +117,20 @@ function mostrarAuth() {
   formRegistro?.reset();
 
   const selectorAdmin = document.querySelector("#selectorSucursalAdmin");
+  if (selectorAdmin) selectorAdmin.remove();
 
-  if (selectorAdmin) {
-    selectorAdmin.remove();
-  }
+  if (contenedorMovimientos) contenedorMovimientos.innerHTML = "";
+  if (buscarMovimiento) buscarMovimiento.value = "";
+  if (filtroAccion) filtroAccion.value = "todos";
 
-  if (contenedorMovimientos) {
-    contenedorMovimientos.innerHTML = "";
-  }
+  actualizarDashboardMovimientos([]);
 }
 
 function mostrarApp() {
   seccionAuth.classList.add("oculto");
   seccionUsuario.classList.remove("oculto");
 
-  seccionesApp.forEach((seccion) => {
-    seccion.classList.remove("oculto");
-  });
+  seccionesApp.forEach((seccion) => seccion.classList.remove("oculto"));
 
   nombreUsuario.textContent = usuarioActivo.nombre;
 
@@ -126,10 +150,7 @@ function crearSelectorSucursales() {
   if (usuarioActivo?.rol !== "admin") return;
 
   const selectorExistente = document.querySelector("#selectorSucursalAdmin");
-
-  if (selectorExistente) {
-    selectorExistente.remove();
-  }
+  if (selectorExistente) selectorExistente.remove();
 
   const contenedorSelector = document.createElement("div");
   contenedorSelector.id = "selectorSucursalAdmin";
@@ -161,11 +182,11 @@ function crearSelectorSucursales() {
   nombreSucursal.insertAdjacentElement("afterend", contenedorSelector);
 
   const filtroSucursalAdmin = document.querySelector("#filtroSucursalAdmin");
-
   filtroSucursalAdmin.value = sucursalSeleccionada;
 
   filtroSucursalAdmin.addEventListener("change", async (e) => {
     sucursalSeleccionada = e.target.value;
+    paginaMovimientos = 1;
     await cargarProductosAPI();
     await cargarResumenSucursales();
     await cargarMovimientosAPI();
@@ -302,7 +323,9 @@ async function cargarMovimientosAPI() {
       throw new Error(data.mensaje || "Error al cargar movimientos");
     }
 
-    renderizarMovimientos(data);
+    movimientos = data;
+    actualizarDashboardMovimientos(movimientos);
+    aplicarFiltroMovimientos();
   } catch (error) {
     console.error("ERROR MOVIMIENTOS:", error);
 
@@ -312,28 +335,121 @@ async function cargarMovimientosAPI() {
   }
 }
 
-function renderizarMovimientos(movimientos) {
+function actualizarDashboardMovimientos(lista) {
+  const hoy = new Date().toLocaleDateString("es-AR");
+
+  const movimientosHoy = lista.filter((movimiento) => {
+    return new Date(movimiento.createdAt).toLocaleDateString("es-AR") === hoy;
+  });
+
+  const creados = movimientosHoy.filter((m) => m.accion === "CREAR").length;
+  const editados = movimientosHoy.filter((m) => m.accion === "EDITAR").length;
+  const eliminados = movimientosHoy.filter((m) => m.accion === "ELIMINAR").length;
+
+  if (totalCrear) totalCrear.textContent = creados;
+  if (totalEditar) totalEditar.textContent = editados;
+  if (totalEliminar) totalEliminar.textContent = eliminados;
+}
+
+function aplicarFiltroMovimientos() {
+  const texto = buscarMovimiento?.value.toLowerCase().trim() || "";
+  const accionSeleccionada = filtroAccion?.value || "todos";
+
+  movimientosFiltradosActuales = movimientos.filter((movimiento) => {
+    const accion = movimiento.accion?.toLowerCase() || "";
+    const producto = movimiento.nombreProducto?.toLowerCase() || "";
+    const lote = movimiento.lote?.toLowerCase() || "";
+    const usuario = movimiento.usuario?.nombre?.toLowerCase() || "";
+    const sucursal = movimiento.sucursal?.nombre?.toLowerCase() || "";
+    const detalle = movimiento.detalle?.toLowerCase() || "";
+
+    const coincideTexto =
+      accion.includes(texto) ||
+      producto.includes(texto) ||
+      lote.includes(texto) ||
+      usuario.includes(texto) ||
+      sucursal.includes(texto) ||
+      detalle.includes(texto);
+
+    const coincideAccion =
+      accionSeleccionada === "todos" ||
+      movimiento.accion === accionSeleccionada;
+
+    return coincideTexto && coincideAccion;
+  });
+
+  renderizarMovimientosPaginados();
+}
+
+function renderizarMovimientosPaginados() {
+  const totalPaginas = Math.max(
+    1,
+    Math.ceil(movimientosFiltradosActuales.length / movimientosPorPagina)
+  );
+
+  if (paginaMovimientos > totalPaginas) {
+    paginaMovimientos = totalPaginas;
+  }
+
+  const inicio = (paginaMovimientos - 1) * movimientosPorPagina;
+  const fin = inicio + movimientosPorPagina;
+  const movimientosPagina = movimientosFiltradosActuales.slice(inicio, fin);
+
+  renderizarMovimientos(movimientosPagina);
+
+  if (paginaActualMovimientos) {
+    paginaActualMovimientos.textContent = `Página ${paginaMovimientos} de ${totalPaginas}`;
+  }
+
+  if (btnAnteriorMovimientos) {
+    btnAnteriorMovimientos.disabled = paginaMovimientos <= 1;
+  }
+
+  if (btnSiguienteMovimientos) {
+    btnSiguienteMovimientos.disabled = paginaMovimientos >= totalPaginas;
+  }
+}
+
+function paginaAnteriorMovimientos() {
+  if (paginaMovimientos > 1) {
+    paginaMovimientos--;
+    renderizarMovimientosPaginados();
+  }
+}
+
+function paginaSiguienteMovimientos() {
+  const totalPaginas = Math.max(
+    1,
+    Math.ceil(movimientosFiltradosActuales.length / movimientosPorPagina)
+  );
+
+  if (paginaMovimientos < totalPaginas) {
+    paginaMovimientos++;
+    renderizarMovimientosPaginados();
+  }
+}
+
+function renderizarMovimientos(listaMovimientos) {
   contenedorMovimientos.innerHTML = "";
 
-  if (!movimientos || movimientos.length === 0) {
+  if (!listaMovimientos || listaMovimientos.length === 0) {
     contenedorMovimientos.innerHTML = `
-      <p class="mensaje-vacio">Todavía no hay movimientos registrados.</p>
+      <p class="mensaje-vacio">No hay movimientos para mostrar.</p>
     `;
     return;
   }
 
-  movimientos.forEach((movimiento) => {
+  listaMovimientos.forEach((movimiento) => {
     const card = document.createElement("article");
     card.classList.add("card-movimiento");
 
     const claseAccion = movimiento.accion.toLowerCase();
-
     card.classList.add(claseAccion);
 
     card.innerHTML = `
       <div class="movimiento-header">
         <span class="accion-movimiento ${claseAccion}">
-          ${obtenerIconoAccion(movimiento.accion)} ${movimiento.accion}
+          ${obtenerTextoAccion(movimiento.accion)}
         </span>
         <span class="fecha-movimiento">
           ${formatearFechaHora(movimiento.createdAt)}
@@ -352,12 +468,54 @@ function renderizarMovimientos(movimientos) {
   });
 }
 
-function obtenerIconoAccion(accion) {
-  if (accion === "CREAR") return "🟢";
-  if (accion === "EDITAR") return "🟡";
-  if (accion === "ELIMINAR") return "🔴";
+function obtenerTextoAccion(accion) {
+  if (accion === "CREAR") return "🟢 Crear";
+  if (accion === "EDITAR") return "✏️ Editar";
+  if (accion === "ELIMINAR") return "🗑️ Eliminar";
 
-  return "📋";
+  return "📋 Movimiento";
+}
+
+function exportarMovimientos() {
+  const lista = movimientosFiltradosActuales.length
+    ? movimientosFiltradosActuales
+    : movimientos;
+
+  if (lista.length === 0) {
+    Swal.fire({
+      icon: "info",
+      title: "Sin movimientos",
+      text: "No hay movimientos para exportar."
+    });
+    return;
+  }
+
+  let contenidoCSV = "Fecha,Acción,Producto,Lote,Usuario,Sucursal,Detalle\n";
+
+  lista.forEach((movimiento) => {
+    contenidoCSV += `"${formatearFechaHora(movimiento.createdAt)}","${movimiento.accion}","${movimiento.nombreProducto}","${movimiento.lote || "Sin lote"}","${movimiento.usuario?.nombre || "Sin datos"}","${movimiento.sucursal?.nombre || "Sin sucursal"}","${movimiento.detalle || "Sin detalle"}"\n`;
+  });
+
+  const blob = new Blob([contenidoCSV], {
+    type: "text/csv;charset=utf-8;"
+  });
+
+  const url = URL.createObjectURL(blob);
+  const enlace = document.createElement("a");
+
+  enlace.href = url;
+  enlace.download = `stockalert-historial-${Date.now()}.csv`;
+  enlace.click();
+
+  URL.revokeObjectURL(url);
+
+  Swal.fire({
+    icon: "success",
+    title: "Historial exportado",
+    text: "Se descargó el archivo CSV.",
+    timer: 1600,
+    showConfirmButton: false
+  });
 }
 
 formRegistro.addEventListener("submit", registrarUsuario);
@@ -490,26 +648,24 @@ function cerrarSesion() {
   token = "";
   usuarioActivo = null;
   productos = [];
+  movimientos = [];
+  movimientosFiltradosActuales = [];
   sucursales = [];
   sucursalSeleccionada = "";
+  paginaMovimientos = 1;
 
   localStorage.removeItem("tokenStockAlert");
   localStorage.removeItem("usuarioStockAlert");
 
   const selectorAdmin = document.querySelector("#selectorSucursalAdmin");
+  if (selectorAdmin) selectorAdmin.remove();
 
-  if (selectorAdmin) {
-    selectorAdmin.remove();
-  }
+  if (resumenSucursales) resumenSucursales.innerHTML = "";
+  if (contenedorMovimientos) contenedorMovimientos.innerHTML = "";
+  if (buscarMovimiento) buscarMovimiento.value = "";
+  if (filtroAccion) filtroAccion.value = "todos";
 
-  if (resumenSucursales) {
-    resumenSucursales.innerHTML = "";
-  }
-
-  if (contenedorMovimientos) {
-    contenedorMovimientos.innerHTML = "";
-  }
-
+  actualizarDashboardMovimientos([]);
   renderizarProductos([]);
   actualizarResumen([]);
   mostrarAuth();
@@ -578,9 +734,7 @@ function obtenerNombreSucursalProducto(producto) {
 }
 
 function obtenerNombreUsuario(usuario) {
-  if (!usuario) {
-    return "Sin datos";
-  }
+  if (!usuario) return "Sin datos";
 
   if (typeof usuario === "object") {
     return usuario.nombre || usuario.email || "Sin datos";
@@ -590,9 +744,7 @@ function obtenerNombreUsuario(usuario) {
 }
 
 function formatearFechaHora(fecha) {
-  if (!fecha) {
-    return "Sin datos";
-  }
+  if (!fecha) return "Sin datos";
 
   const fechaNueva = new Date(fecha);
 
@@ -1115,7 +1267,12 @@ function mostrarAlertasVencimiento() {
         <h3 style="color:#d90429;">Productos vencidos (${productosVencidosLista.length})</h3>
         <ul style="padding-left:20px;">
           ${productosVencidosLista
-            .map((producto) => `<li>${producto.nombre} - Lote: ${producto.lote || "Sin lote"}</li>`)
+            .map(
+              (producto) =>
+                `<li>${producto.nombre} - Lote: ${
+                  producto.lote || "Sin lote"
+                }</li>`
+            )
             .join("")}
         </ul>
       </div>
@@ -1128,7 +1285,12 @@ function mostrarAlertasVencimiento() {
         <h3 style="color:#f4a261;">Productos por vencer (${productosPorVencerLista.length})</h3>
         <ul style="padding-left:20px;">
           ${productosPorVencerLista
-            .map((producto) => `<li>${producto.nombre} - Lote: ${producto.lote || "Sin lote"}</li>`)
+            .map(
+              (producto) =>
+                `<li>${producto.nombre} - Lote: ${
+                  producto.lote || "Sin lote"
+                }</li>`
+            )
             .join("")}
         </ul>
       </div>
@@ -1241,7 +1403,13 @@ function exportarExcel() {
       producto.fechaUltimaActualizacion || producto.updatedAt
     );
 
-    contenidoCSV += `"${producto.nombre}","${producto.lote || ""}","${producto.categoria}",${producto.stock},${producto.precio},"${producto.codigoBarras || "Sin EAN"}","${formatearFecha(producto.vencimiento)}","${obtenerEstadoProducto(producto.vencimiento).texto}","${obtenerEstadoStock(producto.stock).texto}","${nombreSucursalProducto}","${creadoPor}","${actualizadoPor}","${fechaActualizacion}"\n`;
+    contenidoCSV += `"${producto.nombre}","${producto.lote || ""}","${
+      producto.categoria
+    }",${producto.stock},${producto.precio},"${
+      producto.codigoBarras || "Sin EAN"
+    }","${formatearFecha(producto.vencimiento)}","${
+      obtenerEstadoProducto(producto.vencimiento).texto
+    }","${obtenerEstadoStock(producto.stock).texto}","${nombreSucursalProducto}","${creadoPor}","${actualizadoPor}","${fechaActualizacion}"\n`;
   });
 
   const blob = new Blob([contenidoCSV], {
