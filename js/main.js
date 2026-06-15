@@ -72,6 +72,11 @@ let sucursalSeleccionada = "";
 let paginaMovimientos = 1;
 const movimientosPorPagina = 12;
 
+// Filtro fechas movimientos
+let filtroFechaDias = 0; // 0=hoy, 7=7días, 30=30días, -1=todos
+let filtroFechaDesdeVal = null;
+let filtroFechaHastaVal = null;
+
 // Paginación productos
 let paginaProductos = 1;
 const productosPorPagina = 20;
@@ -103,6 +108,41 @@ filtroAccion?.addEventListener("change", () => {
   aplicarFiltroMovimientos();
 });
 
+document.addEventListener("change", (e) => {
+  if (e.target.id === "filtroSucursalMov" || e.target.id === "filtroUsuarioMov") {
+    paginaMovimientos = 1;
+    aplicarFiltroMovimientos();
+  }
+});
+
+document.addEventListener("click", (e) => {
+  if (e.target.id === "btnLimpiarFiltrosMov") {
+    // Limpiar todos los filtros y volver a hoy
+    if (buscarMovimiento)   buscarMovimiento.value = "";
+    const fa = document.querySelector("#filtroAccion");
+    const fs = document.querySelector("#filtroSucursalMov");
+    const fu = document.querySelector("#filtroUsuarioMov");
+    const fd = document.querySelector("#filtroFechaDesde");
+    const fh = document.querySelector("#filtroFechaHasta");
+    if (fa) fa.value = "todos";
+    if (fs) fs.value = "todas";
+    if (fu) fu.value = "todos";
+    if (fd) fd.value = "";
+    if (fh) fh.value = "";
+
+    // Volver a chip "Hoy"
+    filtroFechaDias = 0;
+    filtroFechaDesdeVal = null;
+    filtroFechaHastaVal = null;
+    document.querySelectorAll(".fecha-chip").forEach(c => c.classList.remove("activa"));
+    const chipHoy = document.querySelector('.fecha-chip[data-dias="0"]');
+    if (chipHoy) chipHoy.classList.add("activa");
+
+    paginaMovimientos = 1;
+    aplicarFiltroMovimientos();
+  }
+});
+
 btnExportarMovimientos?.addEventListener("click", exportarMovimientos);
 btnAnteriorMovimientos?.addEventListener("click", paginaAnteriorMovimientos);
 btnSiguienteMovimientos?.addEventListener("click", paginaSiguienteMovimientos);
@@ -132,8 +172,10 @@ async function iniciarApp() {
   aplicarModoGuardado();
   actualizarFechaTopbar();
   iniciarBusquedaGlobal();
+  iniciarFiltroFechas();
   iniciarToggleVista();
   iniciarSidebarCollapse();
+  iniciarFAB();
 
   if (token && usuarioActivo) {
     mostrarApp();
@@ -193,11 +235,11 @@ function mostrarAuth() {
   if (topbar)  topbar.classList.add("oculto");
   if (sidebar) {
     sidebar.classList.add("oculto");
-    // Cerrar drawer móvil al desloguear
     sidebar.classList.remove("open");
     document.querySelector("#sidebarOverlay")?.classList.remove("show");
     document.body.style.overflow = "";
   }
+  ocultarFAB();
 
   const sidebarUser = document.querySelector("#sidebarUser");
   const badge       = document.querySelector("#navBadgeAlertas");
@@ -226,6 +268,7 @@ function mostrarApp() {
   const sidebar = document.querySelector("#sidebar");
   if (topbar)  topbar.classList.remove("oculto");
   if (sidebar) sidebar.classList.remove("oculto");
+  mostrarFAB();
 
   const sidebarUser   = document.querySelector("#sidebarUser");
   const sidebarAvatar = document.querySelector("#sidebarAvatar");
@@ -393,6 +436,7 @@ async function cargarMovimientosAPI() {
 
     movimientos = data;
     actualizarDashboardMovimientos(movimientos);
+    poblarFiltrosMovimientos(movimientos);
     aplicarFiltroMovimientos();
   } catch (error) {
     console.error("ERROR MOVIMIENTOS:", error);
@@ -415,9 +459,36 @@ function actualizarDashboardMovimientos(lista) {
   if (totalEliminar)totalEliminar.textContent= eliminados;
 }
 
+function poblarFiltrosMovimientos(lista) {
+  const selectSuc = document.querySelector("#filtroSucursalMov");
+  const selectUsr = document.querySelector("#filtroUsuarioMov");
+  if (!selectSuc || !selectUsr) return;
+
+  // Obtener valores únicos
+  const sucursalesUnicas = [...new Set(lista.map(m => m.sucursal?.nombre).filter(Boolean))].sort();
+  const usuariosUnicos   = [...new Set(lista.map(m => m.usuario?.nombre).filter(Boolean))].sort();
+
+  const valSuc = selectSuc.value;
+  const valUsr = selectUsr.value;
+
+  selectSuc.innerHTML = '<option value="todas">Todas las sucursales</option>' +
+    sucursalesUnicas.map(s => `<option value="${s}">${s}</option>`).join("");
+
+  selectUsr.innerHTML = '<option value="todos">Todos los usuarios</option>' +
+    usuariosUnicos.map(u => `<option value="${u}">${u}</option>`).join("");
+
+  // Restaurar selección previa si existe
+  if (valSuc) selectSuc.value = valSuc;
+  if (valUsr) selectUsr.value = valUsr;
+}
+
 function aplicarFiltroMovimientos() {
   const texto = buscarMovimiento?.value.toLowerCase().trim() || "";
   const accionSeleccionada = filtroAccion?.value || "todos";
+  const sucursalSelecMov   = document.querySelector("#filtroSucursalMov")?.value || "todas";
+  const usuarioSelecMov    = document.querySelector("#filtroUsuarioMov")?.value  || "todos";
+
+  const ahora = new Date();
 
   movimientosFiltradosActuales = movimientos.filter((m) => {
     const coincideTexto =
@@ -430,7 +501,41 @@ function aplicarFiltroMovimientos() {
 
     const coincideAccion = accionSeleccionada === "todos" || m.accion === accionSeleccionada;
 
-    return coincideTexto && coincideAccion;
+    // Filtro de fechas
+    let coincideFecha = true;
+    const fechaMov = new Date(m.createdAt);
+
+    if (filtroFechaDias === -2 && (filtroFechaDesdeVal || filtroFechaHastaVal)) {
+      // Rango personalizado
+      if (filtroFechaDesdeVal) {
+        const desde = new Date(filtroFechaDesdeVal);
+        desde.setHours(0, 0, 0, 0);
+        if (fechaMov < desde) coincideFecha = false;
+      }
+      if (filtroFechaHastaVal) {
+        const hasta = new Date(filtroFechaHastaVal);
+        hasta.setHours(23, 59, 59, 999);
+        if (fechaMov > hasta) coincideFecha = false;
+      }
+    } else if (filtroFechaDias === 0) {
+      // Hoy
+      const hoy = new Date();
+      hoy.setHours(0, 0, 0, 0);
+      coincideFecha = fechaMov >= hoy;
+    } else if (filtroFechaDias > 0) {
+      // Últimos N días
+      const limite = new Date(ahora - filtroFechaDias * 24 * 60 * 60 * 1000);
+      coincideFecha = fechaMov >= limite;
+    }
+    // filtroFechaDias === -1 → todos, no filtra
+
+    const coincideSucursal = sucursalSelecMov === "todas" ||
+      (m.sucursal?.nombre || "") === sucursalSelecMov;
+
+    const coincideUsuario = usuarioSelecMov === "todos" ||
+      (m.usuario?.nombre || "") === usuarioSelecMov;
+
+    return coincideTexto && coincideAccion && coincideFecha && coincideSucursal && coincideUsuario;
   });
 
   renderizarMovimientosPaginados();
@@ -669,7 +774,7 @@ async function cargarProductosAPI() {
 function normalizarProducto(producto) {
   return {
     ...producto,
-    id: producto._id || producto.id,
+    id: (producto._id || producto.id)?.toString(),
     vencimiento: producto.vencimiento?.split("T")[0] || producto.vencimiento,
     lote: producto.lote || ""
   };
@@ -792,6 +897,7 @@ function renderizarProductosPaginados() {
       const card = document.createElement("article");
       card.classList.add("card-producto", estado.clase, estadoStock.clase, claseBorde);
 
+      const pid = producto.id || producto._id;
       card.innerHTML = `
         <h3>${producto.nombre}</h3>
         ${usuarioActivo?.rol === "admin" ? `<p><strong>Sucursal:</strong> ${nombreSucursalProducto}</p>` : ""}
@@ -808,11 +914,16 @@ function renderizarProductosPaginados() {
         <span class="estado ${estado.clase}">${estado.texto}</span>
         <span class="estado-stock ${estadoStock.clase}">${estadoStock.texto}</span>
         <div class="botones">
-          <button class="btn-editar" data-id="${producto.id}">Editar</button>
-          <button class="btn-eliminar" data-id="${producto.id}">Eliminar</button>
-          ${usuarioActivo?.rol === "admin" ? `<button class="btn-transferir" onclick="transferirProducto('${producto.id}')" title="Transferir">↗</button>` : ""}
+          <button class="btn-accion btn-editar"   data-pid="${pid}" type="button">Editar</button>
+          <button class="btn-accion btn-eliminar" data-pid="${pid}" type="button">Eliminar</button>
+          ${usuarioActivo?.rol === "admin" ? `<button class="btn-accion btn-transferir" data-pid="${pid}" type="button">↗</button>` : ""}
         </div>
       `;
+
+      // Agregar listeners directamente al elemento creado
+      card.querySelector(".btn-editar")?.addEventListener("click", (e) => { e.stopPropagation(); editarProducto(pid); });
+      card.querySelector(".btn-eliminar")?.addEventListener("click", (e) => { e.stopPropagation(); eliminarProducto(pid); });
+      card.querySelector(".btn-transferir")?.addEventListener("click", (e) => { e.stopPropagation(); transferirProducto(pid); });
 
       contenedorProductos.appendChild(card);
     });
@@ -951,8 +1062,31 @@ async function agregarProducto(e) {
 
   const nuevoProducto = { nombre, categoria, precio, codigoBarras, lote: lotePrincipal, stock: stockTotal, vencimiento: vencimientoPrincipal, lotes };
 
-  if (usuarioActivo?.rol === "admin" && sucursalSeleccionada) {
-    nuevoProducto.sucursal = sucursalSeleccionada;
+  // Si es admin, asignar sucursal
+  if (usuarioActivo?.rol === "admin") {
+    if (sucursalSeleccionada) {
+      nuevoProducto.sucursal = sucursalSeleccionada;
+    } else if (sucursales.length > 0) {
+      // Pedir al admin que seleccione una sucursal
+      const opcionesSuc = sucursales.map(s => `<option value="${s._id}">${s.nombre}</option>`).join("");
+      const { value: sucursalElegida, isConfirmed } = await Swal.fire({
+        title: "¿A qué sucursal asignar el producto?",
+        html: `<select id="swalSucursal" class="swal2-input" style="width:85%;margin:0 auto;display:block">
+          <option value="">Seleccioná una sucursal</option>
+          ${opcionesSuc}
+        </select>`,
+        confirmButtonText: "Confirmar",
+        showCancelButton: true,
+        cancelButtonText: "Cancelar",
+        preConfirm: () => {
+          const val = document.getElementById("swalSucursal").value;
+          if (!val) { Swal.showValidationMessage("Seleccioná una sucursal"); return false; }
+          return val;
+        }
+      });
+      if (!isConfirmed) return;
+      nuevoProducto.sucursal = sucursalElegida;
+    }
   }
 
   try {
@@ -978,13 +1112,33 @@ async function agregarProducto(e) {
   }
 }
 
-contenedorProductos.addEventListener("click", manejarBotonesProductos);
+// Delegación robusta para botones de productos
+function manejarClickProductos(e) {
+  // Ignorar clicks dentro del modal FAB
+  if (e.target.closest("#fabModalOverlay")) return;
 
-function manejarBotonesProductos(e) {
-  const idProducto = e.target.dataset.id;
-  if (e.target.classList.contains("btn-eliminar")) eliminarProducto(idProducto);
-  if (e.target.classList.contains("btn-editar"))   editarProducto(idProducto);
+  const btn = e.target.closest(".btn-editar, .btn-eliminar, .btn-transferir");
+  if (!btn) return;
+
+  const id = btn.dataset.id;
+  if (!id || id === "undefined") {
+    console.warn("StockAlert: botón sin data-id", btn);
+    return;
+  }
+
+  if (btn.classList.contains("btn-eliminar")) {
+    e.stopPropagation();
+    eliminarProducto(id);
+  } else if (btn.classList.contains("btn-editar")) {
+    e.stopPropagation();
+    editarProducto(id);
+  } else if (btn.classList.contains("btn-transferir")) {
+    e.stopPropagation();
+    transferirProducto(id);
+  }
 }
+
+document.addEventListener("click", manejarClickProductos);
 
 async function eliminarProducto(idProducto) {
   Swal.fire({
@@ -1019,8 +1173,11 @@ async function eliminarProducto(idProducto) {
 }
 
 function editarProducto(idProducto) {
-  const productoEncontrado = productos.find((p) => p.id === idProducto);
-  if (!productoEncontrado) return;
+  const productoEncontrado = productos.find((p) => String(p.id) === String(idProducto) || String(p._id) === String(idProducto));
+  if (!productoEncontrado) {
+    Swal.fire({ icon:"error", title:"Error", text:"Producto no encontrado (id: "+idProducto+")" });
+    return;
+  }
 
   Swal.fire({
     title: "Editar producto",
@@ -1712,6 +1869,61 @@ function aplicarClaseVista() {
   cont.classList.remove("vista-lista", "vista-tabla");
   if (vistaActual === "lista") cont.classList.add("vista-lista");
   if (vistaActual === "tabla") cont.classList.add("vista-tabla");
+}
+
+// ===== FILTRO FECHAS HISTORIAL =====
+function iniciarFiltroFechas() {
+  // Usar delegación en document para que funcione aunque el DOM no esté listo
+  document.addEventListener("click", (e) => {
+    // Chips de fecha
+    if (e.target.classList.contains("fecha-chip")) {
+      document.querySelectorAll(".fecha-chip").forEach(c => c.classList.remove("activa"));
+      e.target.classList.add("activa");
+      filtroFechaDias = parseInt(e.target.dataset.dias);
+      filtroFechaDesdeVal = null;
+      filtroFechaHastaVal = null;
+      const fd = document.querySelector("#filtroFechaDesde");
+      const fh = document.querySelector("#filtroFechaHasta");
+      if (fd) fd.value = "";
+      if (fh) fh.value = "";
+      paginaMovimientos = 1;
+      aplicarFiltroMovimientos();
+    }
+
+    // Limpiar fechas
+    if (e.target.id === "btnLimpiarFechas") {
+      filtroFechaDesdeVal = null;
+      filtroFechaHastaVal = null;
+      filtroFechaDias = -1;
+      const fd = document.querySelector("#filtroFechaDesde");
+      const fh = document.querySelector("#filtroFechaHasta");
+      if (fd) fd.value = "";
+      if (fh) fh.value = "";
+      document.querySelectorAll(".fecha-chip").forEach(c => c.classList.remove("activa"));
+      const chipTodos = document.querySelector('.fecha-chip[data-dias="-1"]');
+      if (chipTodos) chipTodos.classList.add("activa");
+      paginaMovimientos = 1;
+      aplicarFiltroMovimientos();
+    }
+  });
+
+  // Inputs de fecha con delegación
+  document.addEventListener("change", (e) => {
+    if (e.target.id === "filtroFechaDesde") {
+      filtroFechaDesdeVal = e.target.value;
+      filtroFechaDias = -2;
+      document.querySelectorAll(".fecha-chip").forEach(c => c.classList.remove("activa"));
+      paginaMovimientos = 1;
+      aplicarFiltroMovimientos();
+    }
+    if (e.target.id === "filtroFechaHasta") {
+      filtroFechaHastaVal = e.target.value;
+      filtroFechaDias = -2;
+      document.querySelectorAll(".fecha-chip").forEach(c => c.classList.remove("activa"));
+      paginaMovimientos = 1;
+      aplicarFiltroMovimientos();
+    }
+  });
 }
 
 // ===== SIDEBAR COLLAPSIBLE =====
@@ -2522,4 +2734,171 @@ function obtenerEstadoStockConf(stock) {
   if (stock <= umbral)   return { texto: "Stock crítico", clase: "stock-critico" };
   if (stock <= umbral*2) return { texto: "Stock bajo",    clase: "stock-bajo" };
   return                        { texto: "Stock normal",  clase: "stock-normal" };
+}
+
+// ========================= //
+// FAB SCANNER FLOTANTE      //
+// ========================= //
+
+let fabQrCode = null;
+let fabEscanerActivo = false;
+
+function mostrarFAB() {
+  const fab = document.getElementById("fabScanner");
+  if (fab) fab.classList.add("visible");
+}
+
+function ocultarFAB() {
+  const fab = document.getElementById("fabScanner");
+  if (fab) fab.classList.remove("visible");
+}
+
+function iniciarFAB() {
+  const fab        = document.getElementById("fabScanner");
+  const overlay    = document.getElementById("fabModalOverlay");
+  const btnClose   = document.getElementById("fabModalClose");
+  const btnGuardar = document.getElementById("fabBtnGuardar");
+
+  if (!fab) return;
+
+  fab.addEventListener("click", abrirFabModal);
+  btnClose?.addEventListener("click", cerrarFabModal);
+  overlay?.addEventListener("click", (e) => { if (e.target === overlay) cerrarFabModal(); });
+  btnGuardar?.addEventListener("click", guardarProductoFAB);
+}
+
+async function abrirFabModal() {
+  const overlay = document.getElementById("fabModalOverlay");
+  if (!overlay) return;
+
+  // Reset UI
+  document.getElementById("fabEanDisplay").style.display = "none";
+  document.getElementById("fabCampos").style.display     = "none";
+  document.getElementById("fabEanValor").textContent     = "—";
+  document.getElementById("fabNombre").value    = "";
+  document.getElementById("fabCategoria").value = "";
+  document.getElementById("fabPrecio").value    = "";
+  document.getElementById("fabLote").value      = "";
+  document.getElementById("fabStock").value     = "";
+  document.getElementById("fabVencimiento").value = "";
+
+  overlay.classList.add("activo");
+
+  // Iniciar cámara
+  const lectorEl = document.getElementById("fabLectorCodigo");
+  if (!lectorEl) return;
+
+  try {
+    fabQrCode = new Html5Qrcode("fabLectorCodigo");
+    await fabQrCode.start(
+      { facingMode: "environment" },
+      { fps: 10, qrbox: { width: 240, height: 100 } },
+      async (codigoDetectado) => {
+        // EAN detectado — detener cámara y mostrar campos
+        await detenerFabScanner();
+
+        document.getElementById("fabEanValor").textContent = codigoDetectado;
+        document.getElementById("fabEanDisplay").style.display = "flex";
+        document.getElementById("fabCampos").style.display     = "flex";
+
+        // Guardar EAN para cuando se guarde el producto
+        document.getElementById("fabBtnGuardar").dataset.ean = codigoDetectado;
+
+        // Vibrar si está disponible (móvil)
+        if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+      }
+    );
+    fabEscanerActivo = true;
+  } catch (error) {
+    Swal.fire({ icon: "error", title: "Error de cámara", text: "No se pudo acceder a la cámara. Verificá los permisos." });
+    cerrarFabModal();
+  }
+}
+
+async function detenerFabScanner() {
+  if (fabQrCode && fabEscanerActivo) {
+    try {
+      await fabQrCode.stop();
+      await fabQrCode.clear();
+    } catch(e) { /* ignorar */ }
+  }
+  fabEscanerActivo = false;
+  fabQrCode = null;
+}
+
+async function cerrarFabModal() {
+  await detenerFabScanner();
+  const overlay = document.getElementById("fabModalOverlay");
+  if (overlay) overlay.classList.remove("activo");
+}
+
+async function guardarProductoFAB() {
+  const nombre      = document.getElementById("fabNombre").value.trim();
+  const categoria   = document.getElementById("fabCategoria").value;
+  const precio      = Number(document.getElementById("fabPrecio").value);
+  const lote        = document.getElementById("fabLote").value.trim();
+  const stock       = Number(document.getElementById("fabStock").value);
+  const vencimiento = document.getElementById("fabVencimiento").value;
+  const ean         = document.getElementById("fabBtnGuardar").dataset.ean || "";
+
+  if (!nombre || !categoria || !precio || !vencimiento) {
+    Swal.fire({ icon: "warning", title: "Datos incompletos", text: "Nombre, categoría, precio y vencimiento son obligatorios." });
+    return;
+  }
+
+  const nuevoProducto = {
+    nombre, categoria, precio, codigoBarras: ean,
+    lote, stock: stock || 0, vencimiento,
+    lotes: [{ numero: lote, stock: stock || 0, vencimiento }]
+  };
+
+  // Si es admin, asignar sucursal
+  if (usuarioActivo?.rol === "admin") {
+    if (sucursalSeleccionada) {
+      nuevoProducto.sucursal = sucursalSeleccionada;
+    } else if (sucursales.length > 0) {
+      const opcs = sucursales.map(s => `<option value="${s._id}">${s.nombre}</option>`).join("");
+      const { value: suc, isConfirmed } = await Swal.fire({
+        title: "¿A qué sucursal asignar?",
+        html: `<select id="swalSucFab" class="swal2-input" style="width:85%;margin:0 auto;display:block"><option value="">Seleccioná</option>${opcs}</select>`,
+        confirmButtonText: "Confirmar",
+        showCancelButton: true,
+        preConfirm: () => {
+          const v = document.getElementById("swalSucFab").value;
+          if (!v) { Swal.showValidationMessage("Seleccioná una sucursal"); return false; }
+          return v;
+        }
+      });
+      if (!isConfirmed) return;
+      nuevoProducto.sucursal = suc;
+    }
+  }
+
+  const btn = document.getElementById("fabBtnGuardar");
+  btn.textContent = "Guardando...";
+  btn.disabled = true;
+
+  try {
+    const respuesta = await fetch(`${API_URL}/api/productos`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify(nuevoProducto)
+    });
+    const data = await respuesta.json();
+    if (!respuesta.ok) throw new Error(data.mensaje || "Error al guardar");
+
+    productos.push(normalizarProducto(data));
+    aplicarFiltros();
+    if (usuarioActivo?.rol === "admin") await cargarResumenSucursales();
+    await cargarMovimientosAPI();
+
+    await cerrarFabModal();
+
+    Swal.fire({ icon: "success", title: "Producto guardado", text: `"${nombre}" agregado correctamente.`, timer: 1800, showConfirmButton: false });
+  } catch (error) {
+    Swal.fire({ icon: "error", title: "Error", text: error.message });
+  } finally {
+    btn.textContent = "Guardar producto";
+    btn.disabled = false;
+  }
 }

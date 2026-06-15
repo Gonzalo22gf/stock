@@ -960,11 +960,44 @@ body.light .btn-cerrar { color:var(--red); }
 .vencido,.agotado      { background:var(--red-bg);    color:#fca5a5; }
 .stock-bajo,.stock-critico { background:var(--purple-bg); color:#d8b4fe; }
 
-.card-producto.ok        { border-left-color:var(--green); }
-.card-producto.por-vencer{ border-left-color:var(--yellow); }
-.card-producto.vencido   { border-left-color:var(--red); }
+.card-producto.ok        { border-left-color:var(--green);  background: rgba(16,185,129,.16) !important; }
+.card-producto.por-vencer{ border-left-color:var(--yellow); background: rgba(245,158,11,.16) !important; }
+.card-producto.vencido   { border-left-color:var(--red);    background: rgba(239,68,68,.18) !important; }
+
+/* Stock nunca pone fondo violeta */
 .card-producto.stock-bajo,
-.card-producto.stock-critico { border-left-color:var(--purple); }
+.card-producto.stock-critico,
+.card-producto.agotado { background: var(--bg-3) !important; }
+
+/* Combinaciones: estado vencimiento gana */
+.card-producto.vencido.stock-bajo,
+.card-producto.vencido.stock-critico   { background: rgba(239,68,68,.11) !important; }
+.card-producto.por-vencer.stock-bajo,
+.card-producto.por-vencer.stock-critico{ background: rgba(245,158,11,.09) !important; }
+.card-producto.ok.stock-bajo,
+.card-producto.ok.stock-critico        { background: rgba(16,185,129,.07) !important; }
+
+/* Modo claro - más intensos */
+body.light .card-producto { background: var(--bg-3) !important; }
+body.light .card-producto.ok        { background: rgba(16,185,129,.28) !important; border-left-color:#059669 !important; }
+body.light .card-producto.por-vencer{ background: rgba(245,158,11,.28) !important; border-left-color:#d97706 !important; }
+body.light .card-producto.vencido   { background: rgba(239,68,68,.30) !important;  border-left-color:#dc2626 !important; }
+body.light .card-producto.stock-bajo,
+body.light .card-producto.stock-critico { background: var(--bg-3) !important; }
+
+/* Forzar que ninguna combinación de clases ponga fondo violeta */
+.card-producto { background: var(--bg-3) !important; }
+
+/* Solo excepción visual muy sutil para estados de vencimiento */
+.card-producto.vencido   { background: rgba(239,68,68,.04) !important; }
+.card-producto.por-vencer{ background: rgba(245,158,11,.03) !important; }
+.card-producto.ok        { background: var(--bg-3) !important; }
+
+/* Modo claro - fondos con color visible */
+body.light .card-producto { background: var(--bg-3) !important; }
+body.light .card-producto.vencido    { background: rgba(239,68,68,.18) !important; border-left-color: #dc2626 !important; }
+body.light .card-producto.por-vencer { background: rgba(245,158,11,.15) !important; border-left-color: #d97706 !important; }
+body.light .card-producto.ok         { background: rgba(16,185,129,.12) !important; border-left-color: #059669 !important; }
 
 .borde-ok            { border-left-color:var(--green)!important; }
 .borde-por-vencer    { border-left-color:var(--yellow)!important; }
@@ -1057,10 +1090,12 @@ body.light .btn-cerrar { color:var(--red); }
 .mov-stat.eliminar{ border-top:2px solid var(--red); }
 
 .mov-toolbar {
-  display:grid; grid-template-columns:1fr auto auto;
-  gap:8px; margin-bottom:12px;
+  display:flex; flex-wrap:wrap;
+  gap:8px; margin-bottom:10px; align-items:center;
 }
-.mov-toolbar input,.mov-toolbar select { height:36px; }
+.mov-toolbar input  { flex:1; min-width:180px; height:36px; }
+.mov-toolbar select { min-width:140px; height:36px; }
+.mov-toolbar .btn-success { height:36px; white-space:nowrap; }
 
 .movimientos { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:8px; }
 
@@ -1842,4 +1877,300 @@ body.light .swal2-cancel { color:var(--red) !important; }
   .card { padding: 14px; }
   .card-header { margin-bottom: 10px; }
   .card-header h2 { font-size: .85rem; }
+}
+
+/* ========================= */
+/* FILTRO FECHAS HISTORIAL   */
+/* ========================= */
+
+.mov-fecha-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+  padding: 10px 14px;
+  background: var(--bg-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.mov-fecha-chips {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.fecha-chip {
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: .74rem;
+  font-weight: 600;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text-3);
+  cursor: pointer;
+  transition: all .15s;
+}
+
+.fecha-chip:hover { border-color: var(--brand); color: var(--brand-light); }
+
+.fecha-chip.activa {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: white;
+}
+
+.mov-fecha-rango {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+
+.mov-fecha-rango label {
+  font-size: .72rem;
+  font-weight: 600;
+  color: var(--text-4);
+}
+
+.mov-fecha-rango input[type="date"] {
+  height: 32px;
+  padding: 0 8px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  color: var(--text-1);
+  font-size: .76rem;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.mov-fecha-rango input[type="date"]:focus {
+  outline: none;
+  border-color: var(--brand);
+}
+
+@media (max-width: 700px) {
+  .mov-fecha-toolbar { flex-direction: column; align-items: flex-start; }
+  .mov-fecha-rango   { margin-left: 0; width: 100%; }
+  .mov-fecha-rango input[type="date"] { flex: 1; }
+}
+
+/* ========================= */
+/* BOTÓN FLOTANTE CÁMARA     */
+/* ========================= */
+
+.fab-scanner {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--brand), var(--brand-dark));
+  color: white;
+  display: none; /* solo visible cuando hay sesión */
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px rgba(99,102,241,.5), 0 2px 8px rgba(0,0,0,.3);
+  cursor: pointer;
+  z-index: 500;
+  border: none;
+  transition: transform .2s, box-shadow .2s;
+}
+
+.fab-scanner.visible { display: flex; }
+
+.fab-scanner:hover {
+  transform: scale(1.08) translateY(-2px);
+  box-shadow: 0 8px 28px rgba(99,102,241,.6), 0 4px 12px rgba(0,0,0,.3);
+}
+
+.fab-scanner:active { transform: scale(.96); }
+
+.fab-scanner svg { width: 24px; height: 24px; }
+
+/* Tooltip */
+.fab-scanner::before {
+  content: "Escanear EAN";
+  position: absolute;
+  right: 64px;
+  background: var(--bg-2);
+  color: var(--text-1);
+  font-size: .72rem;
+  font-weight: 700;
+  padding: 5px 10px;
+  border-radius: 7px;
+  white-space: nowrap;
+  border: 1px solid var(--border);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s;
+  box-shadow: var(--shadow);
+}
+
+.fab-scanner:hover::before { opacity: 1; }
+
+/* Pulso animado */
+.fab-scanner::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 2px solid var(--brand);
+  opacity: 0;
+  animation: fab-pulse 2.5s infinite;
+}
+
+@keyframes fab-pulse {
+  0%   { transform: scale(1);   opacity: .5; }
+  70%  { transform: scale(1.3); opacity: 0; }
+  100% { transform: scale(1.3); opacity: 0; }
+}
+
+/* Modal scanner flotante */
+.fab-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.7);
+  z-index: 600;
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+}
+
+.fab-modal-overlay.activo { display: flex; }
+
+.fab-modal {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius) var(--radius) 0 0;
+  width: 100%;
+  max-width: 480px;
+  padding: 20px;
+  box-shadow: var(--shadow-lg);
+  animation: slide-up .25s ease;
+}
+
+@keyframes slide-up {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+.fab-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.fab-modal-title {
+  font-size: .92rem;
+  font-weight: 800;
+  color: var(--text-1);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fab-modal-close {
+  background: var(--bg-3);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  width: 28px; height: 28px;
+  color: var(--text-3);
+  font-size: 1rem;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all .15s;
+}
+.fab-modal-close:hover { background: var(--red-bg); color: var(--red); }
+
+#fabLectorCodigo {
+  width: 100%;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: #000;
+  min-height: 220px;
+}
+
+#fabLectorCodigo video {
+  width: 100% !important;
+  object-fit: cover;
+}
+
+.fab-modal-campos {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fab-campo-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.fab-campo-row.full { grid-template-columns: 1fr; }
+
+.fab-campo-row input,
+.fab-campo-row select {
+  height: 38px;
+  padding: 0 11px;
+  background: var(--bg-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-1);
+  font-size: .82rem;
+  font-family: inherit;
+  width: 100%;
+}
+
+.fab-campo-row input:focus,
+.fab-campo-row select:focus {
+  outline: none;
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px var(--brand-glow);
+}
+
+.fab-ean-display {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(99,102,241,.1);
+  border: 1px solid rgba(99,102,241,.2);
+  border-radius: var(--radius-sm);
+  font-size: .82rem;
+  color: var(--brand-light);
+  font-weight: 700;
+}
+
+.fab-ean-display span { flex:1; }
+
+.fab-btn-guardar {
+  width: 100%;
+  height: 42px;
+  background: linear-gradient(135deg, var(--brand), var(--brand-dark));
+  color: white;
+  font-weight: 700;
+  font-size: .9rem;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-brand);
+  transition: all .15s;
+  margin-top: 4px;
+}
+.fab-btn-guardar:hover { filter: brightness(1.08); }
+
+@media (min-width: 900px) {
+  .fab-scanner { bottom: 32px; right: 32px; }
+  .fab-modal {
+    border-radius: var(--radius);
+    margin-bottom: 100px;
+    max-width: 420px;
+  }
+  .fab-modal-overlay { align-items: center; }
 }
