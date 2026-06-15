@@ -124,6 +124,11 @@
   <!-- TOPBAR -->
   <header class="topbar oculto" id="topbar">
     <div class="topbar-left">
+      <button class="btn-collapse" id="btnCollapseSidebar" type="button" title="Colapsar menú">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
       <button class="btn-menu" id="btnHamburguesa" type="button">
         <span></span><span></span><span></span>
       </button>
@@ -319,8 +324,9 @@
           <option value="vencimiento">Vencimiento ↑</option>
         </select>
         <div class="vista-toggle">
-          <button class="btn-vista activa" id="btnVistaCards" type="button">⊞</button>
-          <button class="btn-vista" id="btnVistaLista" type="button">≡</button>
+          <button class="btn-vista activa" id="btnVistaCards" type="button" title="Vista cards">⊞</button>
+          <button class="btn-vista" id="btnVistaLista" type="button" title="Vista lista">≡</button>
+          <button class="btn-vista" id="btnVistaTabla" type="button" title="Vista tabla">⊟</button>
         </div>
         <button id="btnLimpiarFiltros" class="btn-ghost" type="button">Limpiar</button>
         <button id="btnExportarExcel" class="btn-success" type="button">↓ Exportar Excel</button>
@@ -468,24 +474,12 @@
   <footer class="app-footer">
     <span>StockAlert v3.5</span>
     <span>·</span>
-    <span>Sistema de control de inventario.</span>
+    <span>Sistema de control de inventario</span>
   </footer>
 </div>
 
 <script>
-  // Sidebar móvil
-  const _sidebar = document.getElementById('sidebar');
-  const _overlay = document.getElementById('sidebarOverlay');
-  const _btnMenu = document.getElementById('btnHamburguesa');
-
-  function openSidebar()  { _sidebar?.classList.add('open'); _overlay?.classList.add('show'); document.body.style.overflow='hidden'; }
-  function closeSidebar() { _sidebar?.classList.remove('open'); _overlay?.classList.remove('show'); document.body.style.overflow=''; }
-
-  _btnMenu?.addEventListener('click', () => _sidebar?.classList.contains('open') ? closeSidebar() : openSidebar());
-  _overlay?.addEventListener('click', closeSidebar);
-  document.querySelectorAll('.nav-item').forEach(a => a.addEventListener('click', () => { if(window.innerWidth<=900) closeSidebar(); }));
-
-  // Fecha
+  // Fecha topbar
   const _fecha = document.getElementById('topbarFecha');
   if(_fecha) _fecha.textContent = new Date().toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric'});
 
@@ -495,7 +489,12 @@
   const _sBtn     = document.getElementById('btnBusquedaGlobal');
 
   const openSearch  = () => { _sOverlay?.classList.add('show'); setTimeout(()=>_sInput?.focus(),60); };
-  const closeSearch = () => { _sOverlay?.classList.remove('show'); if(_sInput){_sInput.value='';} const r=document.getElementById('busquedaGlobalResultados'); if(r) r.innerHTML='<p class="search-hint">Escribí para buscar en el inventario</p>'; };
+  const closeSearch = () => {
+    _sOverlay?.classList.remove('show');
+    if(_sInput) _sInput.value='';
+    const r=document.getElementById('busquedaGlobalResultados');
+    if(r) r.innerHTML='<p class="search-hint">Escribí para buscar en el inventario</p>';
+  };
 
   document.addEventListener('keydown', e => {
     if((e.ctrlKey||e.metaKey)&&e.key==='k'){e.preventDefault();openSearch();}

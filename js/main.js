@@ -133,6 +133,7 @@ async function iniciarApp() {
   actualizarFechaTopbar();
   iniciarBusquedaGlobal();
   iniciarToggleVista();
+  iniciarSidebarCollapse();
 
   if (token && usuarioActivo) {
     mostrarApp();
@@ -718,42 +719,98 @@ function renderizarProductosPaginados() {
     return;
   }
 
-  pagina.forEach((producto) => {
-    const estado = obtenerEstadoProducto(producto.vencimiento);
-    const estadoStock = obtenerEstadoStock(producto.stock);
-    const nombreSucursalProducto = obtenerNombreSucursalProducto(producto);
-    const creadoPor = obtenerNombreUsuario(producto.creadoPor);
-    const actualizadoPor = obtenerNombreUsuario(producto.actualizadoPor);
-    const fechaActualizacion = formatearFechaHora(producto.fechaUltimaActualizacion || producto.updatedAt);
-    const claseBorde = obtenerClaseBordeProducto(estado.clase, estadoStock.clase);
-
-    const card = document.createElement("article");
-    card.classList.add("card-producto", estado.clase, estadoStock.clase, claseBorde);
-
-    card.innerHTML = `
-      <h3>${producto.nombre}</h3>
-      ${usuarioActivo?.rol === "admin" ? `<p><strong>Sucursal:</strong> ${nombreSucursalProducto}</p>` : ""}
-      <p><strong>Categoría:</strong> ${producto.categoria}</p>
-      <p><strong>Stock:</strong> ${producto.stock}</p>
-      <p><strong>Precio:</strong> $${producto.precio}</p>
-      <p><strong>EAN:</strong> ${producto.codigoBarras || "Sin EAN"}</p>
-      <p><strong>Lote:</strong> ${producto.lote || "Sin lote"}</p>
-      <p><strong>Vencimiento:</strong> ${formatearFecha(producto.vencimiento)}</p>
-      <hr>
-      <p><strong>Creado por:</strong> ${creadoPor}</p>
-      <p><strong>Última edición:</strong> ${actualizadoPor}</p>
-      <p><strong>Actualizado:</strong> ${fechaActualizacion}</p>
-      <span class="estado ${estado.clase}">${estado.texto}</span>
-      <span class="estado-stock ${estadoStock.clase}">${estadoStock.texto}</span>
-      <div class="botones">
-        <button class="btn-editar" data-id="${producto.id}">Editar</button>
-        <button class="btn-eliminar" data-id="${producto.id}">Eliminar</button>
-        ${usuarioActivo?.rol === "admin" ? `<button class="btn-transferir" onclick="transferirProducto('${producto.id}')" title="Transferir a otra sucursal">↗</button>` : ""}
-      </div>
+  // ===== VISTA TABLA PROFESIONAL =====
+  if (vistaActual === "tabla") {
+    contenedorProductos.classList.add("vista-tabla");
+    const tabla = document.createElement("table");
+    tabla.className = "tabla-productos";
+    tabla.innerHTML = `
+      <thead>
+        <tr>
+          <th>Producto</th>
+          <th>Categoría</th>
+          ${usuarioActivo?.rol === "admin" ? "<th>Sucursal</th>" : ""}
+          <th>Stock</th>
+          <th>Precio</th>
+          <th>Lote</th>
+          <th>Vencimiento</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${pagina.map((producto) => {
+          const estado = obtenerEstadoProducto(producto.vencimiento);
+          const estadoStock = obtenerEstadoStock(producto.stock);
+          const claseBorde = obtenerClaseBordeProducto(estado.clase, estadoStock.clase);
+          return `
+            <tr class="${claseBorde}" style="border-left:3px solid ${estado.clase === 'vencido' ? 'var(--red)' : estado.clase === 'por-vencer' ? 'var(--yellow)' : 'var(--green)'}">
+              <td><strong>${producto.nombre}</strong></td>
+              <td>${producto.categoria}</td>
+              ${usuarioActivo?.rol === "admin" ? `<td>${obtenerNombreSucursalProducto(producto) || "—"}</td>` : ""}
+              <td>
+                <span class="${estadoStock.clase === 'agotado' ? 'fecha-vencida' : estadoStock.clase === 'stock-critico' ? 'fecha-por-vencer' : ''}">${producto.stock}</span>
+              </td>
+              <td>$${Number(producto.precio).toLocaleString("es-AR")}</td>
+              <td>${producto.lote || "—"}</td>
+              <td class="${estado.clase === 'vencido' ? 'fecha-vencida' : estado.clase === 'por-vencer' ? 'fecha-por-vencer' : ''}">${formatearFecha(producto.vencimiento)}</td>
+              <td>
+                <span class="estado ${estado.clase}">${estado.texto}</span>
+                <span class="estado-stock ${estadoStock.clase}">${estadoStock.texto}</span>
+              </td>
+              <td>
+                <div class="prod-tabla-acciones">
+                  <button class="btn-editar" data-id="${producto.id}">Editar</button>
+                  <button class="btn-eliminar" data-id="${producto.id}">Eliminar</button>
+                  ${usuarioActivo?.rol === "admin" ? `<button class="btn-transferir" onclick="transferirProducto('${producto.id}')">↗</button>` : ""}
+                </div>
+              </td>
+            </tr>
+          `;
+        }).join("")}
+      </tbody>
     `;
+    contenedorProductos.appendChild(tabla);
+  } else {
+    // ===== VISTA CARDS / LISTA =====
+    contenedorProductos.classList.remove("vista-tabla");
+    pagina.forEach((producto) => {
+      const estado = obtenerEstadoProducto(producto.vencimiento);
+      const estadoStock = obtenerEstadoStock(producto.stock);
+      const nombreSucursalProducto = obtenerNombreSucursalProducto(producto);
+      const creadoPor = obtenerNombreUsuario(producto.creadoPor);
+      const actualizadoPor = obtenerNombreUsuario(producto.actualizadoPor);
+      const fechaActualizacion = formatearFechaHora(producto.fechaUltimaActualizacion || producto.updatedAt);
+      const claseBorde = obtenerClaseBordeProducto(estado.clase, estadoStock.clase);
 
-    contenedorProductos.appendChild(card);
-  });
+      const card = document.createElement("article");
+      card.classList.add("card-producto", estado.clase, estadoStock.clase, claseBorde);
+
+      card.innerHTML = `
+        <h3>${producto.nombre}</h3>
+        ${usuarioActivo?.rol === "admin" ? `<p><strong>Sucursal:</strong> ${nombreSucursalProducto}</p>` : ""}
+        <p><strong>Categoría:</strong> ${producto.categoria}</p>
+        <p><strong>Stock:</strong> ${producto.stock}</p>
+        <p><strong>Precio:</strong> $${Number(producto.precio).toLocaleString("es-AR")}</p>
+        <p><strong>EAN:</strong> ${producto.codigoBarras || "Sin EAN"}</p>
+        <p><strong>Lote:</strong> ${producto.lote || "Sin lote"}</p>
+        <p><strong>Vencimiento:</strong> ${formatearFecha(producto.vencimiento)}</p>
+        <hr>
+        <p><strong>Creado por:</strong> ${creadoPor}</p>
+        <p><strong>Última edición:</strong> ${actualizadoPor}</p>
+        <p><strong>Actualizado:</strong> ${fechaActualizacion}</p>
+        <span class="estado ${estado.clase}">${estado.texto}</span>
+        <span class="estado-stock ${estadoStock.clase}">${estadoStock.texto}</span>
+        <div class="botones">
+          <button class="btn-editar" data-id="${producto.id}">Editar</button>
+          <button class="btn-eliminar" data-id="${producto.id}">Eliminar</button>
+          ${usuarioActivo?.rol === "admin" ? `<button class="btn-transferir" onclick="transferirProducto('${producto.id}')" title="Transferir">↗</button>` : ""}
+        </div>
+      `;
+
+      contenedorProductos.appendChild(card);
+    });
+  }
 
   renderizarBotonesPaginacionProductos(totalPaginas);
 
@@ -1610,43 +1667,86 @@ function mostrarSkeleton(mostrar) {
 function iniciarToggleVista() {
   const btnCards = document.querySelector("#btnVistaCards");
   const btnLista = document.querySelector("#btnVistaLista");
-  if (!btnCards || !btnLista) return;
+  const btnTabla = document.querySelector("#btnVistaTabla");
 
-  // Recuperar preferencia guardada
-  const vistaGuardada = localStorage.getItem("vistaProductos");
-  if (vistaGuardada) {
-    vistaActual = vistaGuardada;
-    if (vistaActual === "lista") {
-      btnCards.classList.remove("activa");
-      btnLista.classList.add("activa");
-    }
-  }
+  const vistaGuardada = localStorage.getItem("vistaProductos") || "cards";
+  vistaActual = vistaGuardada;
+  actualizarBotonesVista();
 
-  btnCards.addEventListener("click", () => {
-    vistaActual = "cards";
-    btnCards.classList.add("activa");
-    btnLista.classList.remove("activa");
-    localStorage.setItem("vistaProductos", "cards");
-    aplicarClaseVista();
-  });
+  btnCards?.addEventListener("click", () => { vistaActual = "cards"; localStorage.setItem("vistaProductos","cards"); actualizarBotonesVista(); renderizarProductosPaginados(); });
+  btnLista?.addEventListener("click", () => { vistaActual = "lista"; localStorage.setItem("vistaProductos","lista"); actualizarBotonesVista(); renderizarProductosPaginados(); });
+  btnTabla?.addEventListener("click", () => { vistaActual = "tabla"; localStorage.setItem("vistaProductos","tabla"); actualizarBotonesVista(); renderizarProductosPaginados(); });
+}
 
-  btnLista.addEventListener("click", () => {
-    vistaActual = "lista";
-    btnLista.classList.add("activa");
-    btnCards.classList.remove("activa");
-    localStorage.setItem("vistaProductos", "lista");
-    aplicarClaseVista();
-  });
+function actualizarBotonesVista() {
+  const btnCards = document.querySelector("#btnVistaCards");
+  const btnLista = document.querySelector("#btnVistaLista");
+  const btnTabla = document.querySelector("#btnVistaTabla");
+  [btnCards, btnLista, btnTabla].forEach(b => b?.classList.remove("activa"));
+  if (vistaActual === "cards") btnCards?.classList.add("activa");
+  if (vistaActual === "lista") btnLista?.classList.add("activa");
+  if (vistaActual === "tabla") btnTabla?.classList.add("activa");
 }
 
 function aplicarClaseVista() {
   const cont = document.querySelector("#contenedorProductos");
   if (!cont) return;
-  if (vistaActual === "lista") {
-    cont.classList.add("vista-lista");
-  } else {
-    cont.classList.remove("vista-lista");
+  cont.classList.remove("vista-lista", "vista-tabla");
+  if (vistaActual === "lista") cont.classList.add("vista-lista");
+  if (vistaActual === "tabla") cont.classList.add("vista-tabla");
+}
+
+// ===== SIDEBAR COLLAPSIBLE =====
+function iniciarSidebarCollapse() {
+  const btnCollapse   = document.querySelector("#btnCollapseSidebar");
+  const btnHamburguesa= document.querySelector("#btnHamburguesa");
+  const sidebar       = document.querySelector(".sidebar");
+  const overlay       = document.querySelector("#sidebarOverlay");
+  if (!btnCollapse || !sidebar) return;
+
+  // Estado guardado
+  const savedCollapsed = localStorage.getItem("sidebarCollapsed") === "true";
+  if (savedCollapsed) {
+    sidebar.classList.add("collapsed");
+    document.body.classList.add("sidebar-collapsed");
   }
+
+  // Botón ☰ del topbar (desktop) — oculta/muestra completamente
+  btnCollapse.addEventListener("click", () => {
+    const isNowCollapsed = sidebar.classList.toggle("collapsed");
+    document.body.classList.toggle("sidebar-collapsed", isNowCollapsed);
+    localStorage.setItem("sidebarCollapsed", isNowCollapsed);
+  });
+
+  // Botón hamburguesa (mobile) — drawer lateral
+  if (btnHamburguesa) {
+    btnHamburguesa.addEventListener("click", () => {
+      const isOpen = sidebar.classList.toggle("open");
+      overlay?.classList.toggle("show", isOpen);
+      document.body.style.overflow = isOpen ? "hidden" : "";
+    });
+  }
+
+  // Cerrar con overlay en mobile
+  overlay?.addEventListener("click", () => {
+    sidebar.classList.remove("open");
+    overlay.classList.remove("show");
+    document.body.style.overflow = "";
+  });
+
+  // Cerrar al navegar en mobile
+  document.querySelectorAll(".nav-item").forEach(a => {
+    a.addEventListener("click", () => {
+      if (window.innerWidth <= 900) {
+        sidebar.classList.remove("open");
+        overlay?.classList.remove("show");
+        document.body.style.overflow = "";
+      }
+      // Actualizar activo
+      document.querySelectorAll(".nav-item").forEach(l => l.classList.remove("activo"));
+      a.classList.add("activo");
+    });
+  });
 }
 
 // ========================= //
