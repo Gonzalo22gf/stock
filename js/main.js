@@ -191,7 +191,13 @@ function mostrarAuth() {
   const topbar  = document.querySelector("#topbar");
   const sidebar = document.querySelector("#sidebar");
   if (topbar)  topbar.classList.add("oculto");
-  if (sidebar) sidebar.classList.add("oculto");
+  if (sidebar) {
+    sidebar.classList.add("oculto");
+    // Cerrar drawer móvil al desloguear
+    sidebar.classList.remove("open");
+    document.querySelector("#sidebarOverlay")?.classList.remove("show");
+    document.body.style.overflow = "";
+  }
 
   const sidebarUser = document.querySelector("#sidebarUser");
   const badge       = document.querySelector("#navBadgeAlertas");
@@ -1220,8 +1226,26 @@ function aplicarModoGuardado() {
 async function iniciarEscaner() {
   if (escanerActivo) { await detenerEscaner(); return; }
 
-  lectorCodigo.classList.remove("oculto");
-  html5QrCode = new Html5Qrcode("lectorCodigo");
+  const lectorEl = document.querySelector("#lectorCodigo");
+  if (!lectorEl) return;
+  lectorEl.classList.remove("oculto");
+
+  // Html5Qrcode necesita un div limpio con ID — usar lectorCodigoVideo
+  let videoTarget = document.getElementById("lectorCodigoVideo");
+  if (!videoTarget) {
+    videoTarget = document.createElement("div");
+    videoTarget.id = "lectorCodigoVideo";
+    videoTarget.style.cssText = "width:100%;min-height:200px;position:relative;z-index:1;";
+    // Insertar antes del viewfinder si existe, sino al principio
+    const inner = document.getElementById("lectorCodigoInner");
+    if (inner) {
+      inner.insertBefore(videoTarget, inner.firstChild);
+    } else {
+      lectorEl.appendChild(videoTarget);
+    }
+  }
+
+  html5QrCode = new Html5Qrcode("lectorCodigoVideo");
 
   try {
     await html5QrCode.start(
@@ -1234,9 +1258,12 @@ async function iniciarEscaner() {
       }
     );
     escanerActivo = true;
-    btnEscanear.textContent = "Detener escáner";
+    if (btnEscanear) {
+      btnEscanear.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg> Detener escáner`;
+    }
   } catch (error) {
-    lectorCodigo.classList.add("oculto");
+    const lectorEl2 = document.querySelector("#lectorCodigo");
+  if (lectorEl2) lectorEl2.classList.add("oculto");
     Swal.fire({ icon: "error", title: "Error de cámara", text: "No se pudo acceder a la cámara." });
   }
 }
@@ -1246,10 +1273,13 @@ async function detenerEscaner() {
     await html5QrCode.stop();
     await html5QrCode.clear();
   }
-  lectorCodigo.classList.add("oculto");
+  const lectorEl2 = document.querySelector("#lectorCodigo");
+  if (lectorEl2) lectorEl2.classList.add("oculto");
   escanerActivo = false;
   html5QrCode = null;
-  btnEscanear.textContent = "📷 Escanear EAN";
+  if (btnEscanear) {
+    btnEscanear.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg> Escanear EAN`;
+  }
 }
 
 function exportarExcel() {
@@ -2020,14 +2050,24 @@ async function cargarGestionSucursales(contenedor) {
     <h3 style="font-size:.85rem;font-weight:700;color:var(--text-1);margin-bottom:12px;padding-top:16px;border-top:1px solid var(--border)">
       🏪 Gestión de sucursales
     </h3>
-    <div class="sucursales-grid">
+    <div class="buscador-sucursales-wrap">
+      <input
+        type="text"
+        class="buscador-sucursales"
+        id="buscadorSucursales"
+        placeholder="Buscar por nombre o número de sucursal..."
+        autocomplete="off"
+        spellcheck="false"
+      >
+    </div>
+    <div class="sucursales-grid" id="gridSucursales">
       ${sucursales.map((s) => `
-        <div class="sucursal-card">
+        <div class="sucursal-card" data-nombre="${s.nombre.toLowerCase()}" data-numero="${s.numero || s.nro || ""}">
           <div class="sucursal-card-header">
-            <div class="sucursal-num">${s.numero || s.nro || "—"}</div>
+            <div class="sucursal-num">${s.numero || s.nro || s.nombre.charAt(0).toUpperCase()}</div>
             <div class="sucursal-info">
               <span class="sucursal-nombre">${s.nombre}</span>
-              <small class="sucursal-dir">${s.direccion || "Sin dirección"}</small>
+              <small class="sucursal-dir">${s.direccion || "Sin dirección registrada"}</small>
             </div>
             <button
               class="btn-editar-sucursal"
@@ -2046,6 +2086,18 @@ async function cargarGestionSucursales(contenedor) {
     </div>
   `;
   contenedor.appendChild(div);
+
+  // Buscador de sucursales
+  const buscadorSuc = div.querySelector("#buscadorSucursales");
+  buscadorSuc?.addEventListener("input", () => {
+    const texto = buscadorSuc.value.toLowerCase().trim();
+    div.querySelectorAll(".sucursal-card").forEach((card) => {
+      const nombre = card.dataset.nombre || "";
+      const numero = card.dataset.numero || "";
+      const coincide = nombre.includes(texto) || numero.includes(texto);
+      card.classList.toggle("oculta", !coincide);
+    });
+  });
 }
 
 async function cambiarRolUsuario(idUsuario, nuevoRol) {
