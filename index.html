@@ -12,7 +12,6 @@
 </head>
 <body>
 
-  <!-- SIDEBAR -->
   <div class="sidebar oculto" id="sidebar">
     <div class="logo">
       <div class="logo-icon">📦</div>
@@ -22,42 +21,18 @@
       </div>
     </div>
     <nav>
-      <a href="#panelDecisiones" class="nav-link activo">
-        <span class="nav-icon">📊</span><span class="nav-label">Dashboard</span>
-      </a>
-      <a href="#contenedorProductos" class="nav-link">
-        <span class="nav-icon">📦</span><span class="nav-label">Productos</span>
-      </a>
-      <a href="#formProducto" class="nav-link">
-        <span class="nav-icon">🏷️</span><span class="nav-label">Lotes</span>
-      </a>
-      <a href="#seccionHistorial" class="nav-link">
-        <span class="nav-icon">📋</span><span class="nav-label">Movimientos</span>
-      </a>
-      <a href="#dashboardGraficos" class="nav-link">
-        <span class="nav-icon">📈</span><span class="nav-label">Reportes</span>
-      </a>
-      <a href="#panelDecisiones" class="nav-link">
-        <span class="nav-icon">🚨</span><span class="nav-label">Alertas</span>
-        <span class="nav-badge" id="navBadgeAlertas"></span>
-      </a>
-      <a href="#btnExportarExcel" class="nav-link">
-        <span class="nav-icon">📤</span><span class="nav-label">Importar / Exportar</span>
-      </a>
-      <a href="#btnEscanear" class="nav-link">
-        <span class="nav-icon">📷</span><span class="nav-label">Escáner EAN-13</span>
-      </a>
-      <a href="#seccionUsuario" class="nav-link">
-        <span class="nav-icon">👤</span><span class="nav-label">Usuarios</span>
-      </a>
-      <a href="#panelAdminGlobal" class="nav-link">
-        <span class="nav-icon">🏪</span><span class="nav-label">Sucursales</span>
-      </a>
-      <a href="#" class="nav-link">
-        <span class="nav-icon">⚙️</span><span class="nav-label">Configuración</span>
-      </a>
+      <a href="#panelDecisiones" class="nav-link activo"><span class="nav-icon">📊</span><span class="nav-label">Dashboard</span></a>
+      <a href="#contenedorProductos" class="nav-link"><span class="nav-icon">📦</span><span class="nav-label">Productos</span></a>
+      <a href="#formProducto" class="nav-link"><span class="nav-icon">🏷️</span><span class="nav-label">Lotes</span></a>
+      <a href="#seccionHistorial" class="nav-link"><span class="nav-icon">📋</span><span class="nav-label">Movimientos</span></a>
+      <a href="#dashboardGraficos" class="nav-link"><span class="nav-icon">📈</span><span class="nav-label">Reportes</span></a>
+      <a href="#panelDecisiones" class="nav-link"><span class="nav-icon">🚨</span><span class="nav-label">Alertas</span><span class="nav-badge" id="navBadgeAlertas"></span></a>
+      <a href="#btnExportarExcel" class="nav-link"><span class="nav-icon">📤</span><span class="nav-label">Importar / Exportar</span></a>
+      <a href="#btnEscanear" class="nav-link"><span class="nav-icon">📷</span><span class="nav-label">Escáner EAN-13</span></a>
+      <a href="#seccionUsuario" class="nav-link"><span class="nav-icon">👤</span><span class="nav-label">Usuarios</span></a>
+      <a href="#panelAdminGlobal" class="nav-link"><span class="nav-icon">🏪</span><span class="nav-label">Sucursales</span></a>
+      <a href="#" class="nav-link"><span class="nav-icon">⚙️</span><span class="nav-label">Configuración</span></a>
     </nav>
-
     <div class="sidebar-footer">
       <button id="btnModoOscuro" class="btn-modo-sidebar" type="button">
         <span id="iconoModo">🌙</span>
@@ -78,24 +53,41 @@
     </div>
   </div>
 
-  <!-- Overlay para cerrar sidebar en móvil -->
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-  <!-- CONTENIDO PRINCIPAL -->
-  <div class="main-content">
+  <!-- BÚSQUEDA GLOBAL -->
+  <div class="busqueda-global-overlay" id="busquedaOverlay">
+    <div class="busqueda-global-modal">
+      <div class="busqueda-global-input-wrap">
+        <span>🔍</span>
+        <input type="text" id="busquedaGlobalInput" placeholder="Buscar productos, lotes, categorías..." autocomplete="off" spellcheck="false">
+        <kbd>ESC</kbd>
+      </div>
+      <div class="busqueda-global-resultados" id="busquedaGlobalResultados">
+        <p class="busqueda-hint">Escribí para buscar en todo el inventario</p>
+      </div>
+    </div>
+  </div>
 
-    <!-- TOP BAR -->
+  <div class="main-content">
     <header class="topbar oculto" id="topbar">
       <div class="topbar-left">
         <button class="btn-hamburguesa" id="btnHamburguesa" type="button" aria-label="Menú">
           <span></span><span></span><span></span>
         </button>
-        <h1 class="topbar-title" id="topbarTitulo">Dashboard Ejecutivo</h1>
-        <p class="topbar-sub">Resumen general de inventario y control de vencimientos</p>
+        <div>
+          <h1 class="topbar-title" id="topbarTitulo">Dashboard Ejecutivo</h1>
+          <p class="topbar-sub">Resumen general de inventario y control de vencimientos</p>
+        </div>
       </div>
       <div class="topbar-right">
-        <div class="topbar-sucursal" id="topbarSucursal">
-          <span class="topbar-label">Sucursal actual:</span>
+        <button class="btn-busqueda-global" id="btnBusquedaGlobal" type="button" title="Buscar (Ctrl+K)">
+          <span>🔍</span>
+          <span class="btn-busqueda-texto">Buscar...</span>
+          <kbd>Ctrl K</kbd>
+        </button>
+        <div class="topbar-sucursal">
+          <span class="topbar-label">Sucursal:</span>
           <span class="topbar-value" id="topbarNombreSucursal">—</span>
         </div>
         <div class="topbar-fecha">
@@ -114,29 +106,37 @@
 
     <main class="contenedor">
 
-      <!-- AUTH -->
-      <section id="seccionAuth" class="panel auth-panel">
-        <h2>Acceso al sistema</h2>
-        <div class="auth-contenedor">
-          <form id="formLogin" class="formulario-auth" autocomplete="off">
-            <h3>Iniciar sesión</h3>
-            <input type="email" id="loginEmail" placeholder="Email" required autocomplete="off" autocapitalize="none" spellcheck="false">
-            <input type="password" id="loginPassword" placeholder="Contraseña" required autocomplete="new-password">
-            <button type="submit">Ingresar</button>
-          </form>
-          <form id="formRegistro" class="formulario-auth" autocomplete="off">
-            <h3>Registrar sucursal</h3>
-            <input type="text" id="registroNombre" placeholder="Nombre del usuario" required autocomplete="off" spellcheck="false">
-            <input type="email" id="registroEmail" placeholder="Email" required autocomplete="off" autocapitalize="none" spellcheck="false">
-            <input type="password" id="registroPassword" placeholder="Contraseña" required autocomplete="new-password">
-            <input type="text" id="registroSucursal" placeholder="Nombre de la sucursal" required autocomplete="off" spellcheck="false">
-            <input type="text" id="registroDireccion" placeholder="Dirección de la sucursal" autocomplete="off" spellcheck="false">
-            <button type="submit">Registrarse</button>
-          </form>
+      <!-- LOGIN CENTRADO -->
+      <section id="seccionAuth" class="auth-fullscreen">
+        <div class="auth-card">
+          <div class="auth-logo">
+            <span>📦</span>
+            <div>
+              <h1>StockAlert</h1>
+              <p>Control de stock y vencimientos</p>
+            </div>
+          </div>
+          <div class="auth-contenedor">
+            <form id="formLogin" class="formulario-auth" autocomplete="off">
+              <h3>Iniciar sesión</h3>
+              <input type="email" id="loginEmail" placeholder="Email" required autocomplete="off" autocapitalize="none" spellcheck="false">
+              <input type="password" id="loginPassword" placeholder="Contraseña" required autocomplete="new-password">
+              <button type="submit">Ingresar</button>
+            </form>
+            <div class="auth-divider"></div>
+            <form id="formRegistro" class="formulario-auth" autocomplete="off">
+              <h3>Registrar sucursal</h3>
+              <input type="text" id="registroNombre" placeholder="Nombre del usuario" required autocomplete="off" spellcheck="false">
+              <input type="email" id="registroEmail" placeholder="Email" required autocomplete="off" autocapitalize="none" spellcheck="false">
+              <input type="password" id="registroPassword" placeholder="Contraseña" required autocomplete="new-password">
+              <input type="text" id="registroSucursal" placeholder="Nombre de la sucursal" required autocomplete="off" spellcheck="false">
+              <input type="text" id="registroDireccion" placeholder="Dirección de la sucursal" autocomplete="off" spellcheck="false">
+              <button type="submit">Registrarse</button>
+            </form>
+          </div>
         </div>
       </section>
 
-      <!-- USUARIO (oculto, usado por JS) -->
       <section id="seccionUsuario" class="panel usuario-panel oculto">
         <div>
           <h2 id="nombreUsuario">Usuario</h2>
@@ -145,13 +145,35 @@
         <button id="btnCerrarSesion" class="btn-cerrar" type="button">Cerrar sesión</button>
       </section>
 
-      <!-- ADMIN -->
       <section id="panelAdminGlobal" class="panel seccion-app oculto">
-        <h2>Panel Administrador Global</h2>
-        <div id="resumenSucursales" class="resumen-sucursales"></div>
+        <div class="panel-header-row">
+          <h2>🏢 Panel Administrador Global</h2>
+          <button class="btn-config-alertas" onclick="abrirConfigAlertas()" type="button">⚙️ Configurar alertas</button>
+        </div>
+
+        <!-- Tabs admin -->
+        <div class="admin-tabs">
+          <button class="admin-tab activa" data-tab="resumen" type="button">📊 Resumen</button>
+          <button class="admin-tab" data-tab="comparativo" type="button">🏪 Comparativo sucursales</button>
+          <button class="admin-tab" data-tab="usuarios" type="button">👥 Usuarios</button>
+        </div>
+
+        <!-- Tab resumen -->
+        <div class="admin-tab-content activa" id="tab-resumen">
+          <div id="resumenSucursales" class="resumen-sucursales"></div>
+        </div>
+
+        <!-- Tab comparativo -->
+        <div class="admin-tab-content" id="tab-comparativo">
+          <div id="comparativoSucursales"></div>
+        </div>
+
+        <!-- Tab usuarios -->
+        <div class="admin-tab-content" id="tab-usuarios">
+          <div id="tablaUsuariosAdmin"></div>
+        </div>
       </section>
 
-      <!-- FORM PRODUCTO -->
       <section class="panel seccion-app oculto">
         <h2>Agregar producto</h2>
         <form id="formProducto" class="formulario" autocomplete="off">
@@ -175,7 +197,7 @@
               <input type="date" class="lote-vencimiento" required autocomplete="off">
             </div>
           </div>
-          <button id="btnAgregarLote" type="button">➕ Agregar lote</button>
+          <button id="btnAgregarLote" type="button" class="btn-limpiar-form">🗑️ Limpiar formulario</button>
           <input type="hidden" id="lote">
           <input type="hidden" id="stock">
           <input type="hidden" id="vencimiento">
@@ -183,7 +205,6 @@
         </form>
       </section>
 
-      <!-- FILTROS -->
       <section class="panel seccion-app oculto">
         <h2>Buscar y filtrar</h2>
         <div class="filtros">
@@ -208,47 +229,50 @@
             <option value="stock">Stock</option>
             <option value="vencimiento">Vencimiento</option>
           </select>
-          <button id="btnLimpiarFiltros" class="btn-limpiar" type="button">Limpiar búsqueda</button>
-          <button id="btnExportarExcel" class="btn-exportar" type="button">📄 Exportar Excel</button>
+          <!-- Toggle vista -->
+          <div class="toggle-vista-wrap">
+            <button class="btn-vista activa" id="btnVistaCards" type="button" title="Vista cards">⊞ Cards</button>
+            <button class="btn-vista" id="btnVistaLista" type="button" title="Vista lista">≡ Lista</button>
+          </div>
+          <button id="btnLimpiarFiltros" class="btn-limpiar" type="button">Limpiar</button>
+          <button id="btnExportarExcel" class="btn-exportar" type="button">📄 Exportar</button>
           <input type="file" id="inputImportar" accept=".csv">
-          <button id="btnImportarExcel" type="button">📥 Importar Excel</button>
+          <button id="btnImportarExcel" type="button">📥 Importar</button>
         </div>
       </section>
 
-      <!-- ===== DASHBOARD PRINCIPAL ===== -->
-
-      <!-- KPI CARDS TOP -->
+      <!-- KPI CARDS -->
       <section class="kpis-top seccion-app oculto">
         <article class="kpi-card kpi-critico">
           <div class="kpi-body">
             <p class="kpi-label">Productos críticos</p>
             <span class="kpi-valor" id="kpiCriticos">0</span>
             <p class="kpi-sub">Con stock crítico o agotado</p>
+            <span class="kpi-tendencia" id="kpiCriticosTend"></span>
           </div>
           <div class="kpi-icon-wrap kpi-icon-rojo">⚠️</div>
           <div class="kpi-wave kpi-wave-rojo"></div>
         </article>
-
         <article class="kpi-card kpi-riesgo">
           <div class="kpi-body">
             <p class="kpi-label">Valor en riesgo</p>
             <span class="kpi-valor" id="kpiValorRiesgo">$0</span>
             <p class="kpi-sub">Productos vencidos o por vencer</p>
+            <span class="kpi-tendencia" id="kpiValorRiesgoTend"></span>
           </div>
           <div class="kpi-icon-wrap kpi-icon-naranja">💲</div>
           <div class="kpi-wave kpi-wave-naranja"></div>
         </article>
-
         <article class="kpi-card kpi-vencer">
           <div class="kpi-body">
             <p class="kpi-label">Próximos a vencer</p>
             <span class="kpi-valor" id="kpiVencenHoy">0</span>
             <p class="kpi-sub">En los próximos 30 días</p>
+            <span class="kpi-tendencia" id="kpiVencenTend"></span>
           </div>
           <div class="kpi-icon-wrap kpi-icon-amarillo">📅</div>
           <div class="kpi-wave kpi-wave-amarillo"></div>
         </article>
-
         <article class="kpi-card kpi-sucursal">
           <div class="kpi-body">
             <p class="kpi-label">Sucursal más crítica</p>
@@ -260,11 +284,9 @@
         </article>
       </section>
 
-      <!-- URGENTES + RANKING LADO A LADO -->
+      <!-- URGENTES + RANKING -->
       <section id="panelDecisiones" class="panel-dashboard seccion-app oculto">
         <div class="dashboard-grid-principal">
-
-          <!-- Tabla urgentes izquierda -->
           <div class="panel panel-urgentes">
             <div class="panel-header-row">
               <h2>🚨 Acciones urgentes</h2>
@@ -274,25 +296,17 @@
               <table class="tabla-urgencias">
                 <thead>
                   <tr>
-                    <th>Producto</th>
-                    <th>Lote</th>
-                    <th>Sucursal</th>
-                    <th>Vence</th>
-                    <th>Stock</th>
-                    <th>Prioridad</th>
+                    <th>Producto</th><th>Lote</th><th>Sucursal</th><th>Vence</th><th>Stock</th><th>Prioridad</th>
                   </tr>
                 </thead>
                 <tbody id="tablaUrgencias"></tbody>
               </table>
             </div>
           </div>
-
-          <!-- Ranking derecha -->
           <div class="panel panel-ranking">
             <h2>🏆 Top 10 más riesgosos</h2>
             <div id="rankingRiesgo" class="ranking-lista"></div>
           </div>
-
         </div>
       </section>
 
@@ -300,66 +314,49 @@
       <section id="dashboardGraficos" class="panel seccion-app oculto">
         <h2>📊 Dashboard Ejecutivo</h2>
         <div class="graficos-dashboard">
-          <div class="grafico-card">
-            <h3>Estado de productos</h3>
-            <canvas id="graficoEstados"></canvas>
-          </div>
-          <div class="grafico-card">
-            <h3>Vencimientos por mes</h3>
-            <canvas id="graficoCategorias"></canvas>
-          </div>
-          <div class="grafico-card">
-            <h3>Stock por categoría</h3>
-            <canvas id="graficoStockCategorias"></canvas>
-          </div>
-          <div class="grafico-card">
-            <h3>Valor de inventario</h3>
-            <canvas id="graficoValorInventario"></canvas>
-          </div>
+          <div class="grafico-card"><h3>Estado de productos</h3><canvas id="graficoEstados"></canvas></div>
+          <div class="grafico-card"><h3>Vencimientos por mes</h3><canvas id="graficoCategorias"></canvas></div>
+          <div class="grafico-card"><h3>Stock por categoría</h3><canvas id="graficoStockCategorias"></canvas></div>
+          <div class="grafico-card"><h3>Valor de inventario</h3><canvas id="graficoValorInventario"></canvas></div>
         </div>
       </section>
 
-      <!-- RESUMEN CARDS ABAJO -->
+      <!-- RESUMEN -->
       <section class="resumen seccion-app oculto">
         <article class="card-resumen total">
           <div class="resumen-icon-wrap" style="background:rgba(37,99,235,.12)">📦</div>
-          <span id="totalProductos">0</span>
-          <p>Total de productos</p>
-          <small>En inventario</small>
+          <span id="totalProductos">0</span><p>Total de productos</p><small>En inventario</small>
         </article>
         <article class="card-resumen vencidos-card">
           <div class="resumen-icon-wrap" style="background:rgba(220,38,38,.12)">⏰</div>
-          <span id="productosVencidos">0</span>
-          <p>Productos vencidos</p>
-          <small>Requieren atención</small>
+          <span id="productosVencidos">0</span><p>Productos vencidos</p><small>Requieren atención</small>
         </article>
         <article class="card-resumen stock-bajo-card">
           <div class="resumen-icon-wrap" style="background:rgba(168,85,247,.12)">📉</div>
-          <span id="productosStockBajo">0</span>
-          <p>Stock bajo</p>
-          <small>≤ 5 unidades</small>
+          <span id="productosStockBajo">0</span><p>Stock bajo</p><small>≤ 5 unidades</small>
         </article>
         <article class="card-resumen agotados-card">
           <div class="resumen-icon-wrap" style="background:rgba(127,29,29,.12)">🚫</div>
-          <span id="productosAgotados">0</span>
-          <p>Agotados</p>
-          <small>Sin stock</small>
+          <span id="productosAgotados">0</span><p>Agotados</p><small>Sin stock</small>
         </article>
         <article class="card-resumen valor-card">
           <div class="resumen-icon-wrap" style="background:rgba(34,197,94,.12)">💰</div>
-          <span id="valorInventario">$0</span>
-          <p>Valor total inventario</p>
-          <small>Valor de reposición</small>
+          <span id="valorInventario">$0</span><p>Valor total inventario</p><small>Valor de reposición</small>
         </article>
-        <!-- por-vencer oculto para JS, no lo mostramos en el nuevo diseño como card separada -->
         <span id="productosPorVencer" style="display:none">0</span>
       </section>
 
       <!-- LISTADO PRODUCTOS -->
-      <section class="panel seccion-app oculto">
+      <section class="panel seccion-app oculto" id="seccionProductos">
         <div class="panel-header-row">
           <h2>Listado de productos</h2>
           <span class="pag-info" id="infoProductos"></span>
+        </div>
+        <!-- Skeleton loading -->
+        <div id="skeletonProductos" class="skeleton-grid oculto">
+          <div class="skeleton-card"></div><div class="skeleton-card"></div>
+          <div class="skeleton-card"></div><div class="skeleton-card"></div>
+          <div class="skeleton-card"></div><div class="skeleton-card"></div>
         </div>
         <div id="contenedorProductos" class="productos"></div>
         <div class="paginacion-productos" id="paginacionProductos"></div>
@@ -369,18 +366,9 @@
       <section id="seccionHistorial" class="panel seccion-app oculto">
         <h2>📋 Historial de movimientos</h2>
         <div class="dashboard-historial">
-          <article class="card-dashboard crear">
-            <span id="totalCrear">0</span>
-            <p>🟢 Creados hoy</p>
-          </article>
-          <article class="card-dashboard editar">
-            <span id="totalEditar">0</span>
-            <p>🟡 Editados hoy</p>
-          </article>
-          <article class="card-dashboard eliminar">
-            <span id="totalEliminar">0</span>
-            <p>🔴 Eliminados hoy</p>
-          </article>
+          <article class="card-dashboard crear"><span id="totalCrear">0</span><p>🟢 Creados hoy</p></article>
+          <article class="card-dashboard editar"><span id="totalEditar">0</span><p>🟡 Editados hoy</p></article>
+          <article class="card-dashboard eliminar"><span id="totalEliminar">0</span><p>🔴 Eliminados hoy</p></article>
         </div>
         <div class="barra-historial">
           <input type="text" id="buscarMovimiento" placeholder="Buscar producto, usuario o acción..." autocomplete="off" spellcheck="false">
@@ -418,43 +406,52 @@
       overlayEl.classList.add('visible');
       document.body.style.overflow = 'hidden';
     }
-
     function cerrarSidebar() {
       sidebarEl.classList.remove('abierto');
       overlayEl.classList.remove('visible');
       document.body.style.overflow = '';
     }
 
-    if (btnHamburguesa) {
-      btnHamburguesa.addEventListener('click', () => {
-        sidebarEl.classList.contains('abierto') ? cerrarSidebar() : abrirSidebar();
-      });
-    }
-
+    if (btnHamburguesa) btnHamburguesa.addEventListener('click', () => {
+      sidebarEl.classList.contains('abierto') ? cerrarSidebar() : abrirSidebar();
+    });
     if (overlayEl) overlayEl.addEventListener('click', cerrarSidebar);
 
-    // Cerrar al hacer click en un link del nav en móvil
     document.querySelectorAll('.nav-link').forEach(link => {
       link.addEventListener('click', () => {
         if (window.innerWidth <= 900) cerrarSidebar();
+        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('activo'));
+        link.classList.add('activo');
       });
     });
 
     // Fecha topbar
     const topbarFecha = document.getElementById('topbarFecha');
-    if (topbarFecha) {
-      topbarFecha.textContent = new Date().toLocaleDateString('es-AR', {
-        day: '2-digit', month: '2-digit', year: 'numeric'
-      });
+    if (topbarFecha) topbarFecha.textContent = new Date().toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+    // Búsqueda global Ctrl+K
+    const busquedaOverlay = document.getElementById('busquedaOverlay');
+    const busquedaInput   = document.getElementById('busquedaGlobalInput');
+    const btnBusqueda     = document.getElementById('btnBusquedaGlobal');
+
+    function abrirBusqueda() {
+      busquedaOverlay.classList.add('activo');
+      setTimeout(() => busquedaInput?.focus(), 50);
+    }
+    function cerrarBusqueda() {
+      busquedaOverlay.classList.remove('activo');
+      if (busquedaInput) busquedaInput.value = '';
+      const res = document.getElementById('busquedaGlobalResultados');
+      if (res) res.innerHTML = '<p class="busqueda-hint">Escribí para buscar en todo el inventario</p>';
     }
 
-    // Nav activo al hacer click
-    document.querySelectorAll('.nav-link').forEach(link => {
-      link.addEventListener('click', () => {
-        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('activo'));
-        link.classList.add('activo');
-      });
+    document.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); abrirBusqueda(); }
+      if (e.key === 'Escape') cerrarBusqueda();
     });
+
+    if (btnBusqueda) btnBusqueda.addEventListener('click', abrirBusqueda);
+    if (busquedaOverlay) busquedaOverlay.addEventListener('click', (e) => { if (e.target === busquedaOverlay) cerrarBusqueda(); });
   </script>
 </body>
 </html>

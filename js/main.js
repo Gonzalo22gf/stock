@@ -76,6 +76,12 @@ const movimientosPorPagina = 12;
 let paginaProductos = 1;
 const productosPorPagina = 20;
 
+// Vista productos
+let vistaActual = "cards"; // "cards" o "lista"
+
+// KPI anteriores para tendencia
+let kpiPrevio = { criticos: null, valorRiesgo: null, porVencer: null };
+
 let token = localStorage.getItem("tokenStockAlert") || "";
 let usuarioActivo = JSON.parse(localStorage.getItem("usuarioStockAlert")) || null;
 
@@ -103,8 +109,30 @@ btnSiguienteMovimientos?.addEventListener("click", paginaSiguienteMovimientos);
 
 async function iniciarApp() {
   btnEscanear?.addEventListener("click", iniciarEscaner);
+
+  // Botón limpiar formulario (antes "Agregar lote")
+  const btnLimpiarForm = document.querySelector("#btnAgregarLote");
+  if (btnLimpiarForm) {
+    btnLimpiarForm.addEventListener("click", () => {
+      formProducto.reset();
+      // Restaurar solo una fila de lote
+      const contenedorLotes = document.querySelector("#contenedorLotes");
+      if (contenedorLotes) {
+        contenedorLotes.innerHTML = `
+          <div class="fila-lote">
+            <input type="text" class="lote-numero" placeholder="Lote" autocomplete="off" spellcheck="false">
+            <input type="number" class="lote-stock" placeholder="Stock" min="0" required autocomplete="off">
+            <input type="date" class="lote-vencimiento" required autocomplete="off">
+          </div>
+        `;
+      }
+      Swal.fire({ icon: "success", title: "Formulario limpiado", timer: 900, showConfirmButton: false });
+    });
+  }
   aplicarModoGuardado();
   actualizarFechaTopbar();
+  iniciarBusquedaGlobal();
+  iniciarToggleVista();
 
   if (token && usuarioActivo) {
     mostrarApp();
@@ -227,6 +255,25 @@ function mostrarApp() {
   }
 
   actualizarTopbarYSidebar();
+  iniciarTabsAdmin();
+}
+
+function iniciarTabsAdmin() {
+  const tabs = document.querySelectorAll(".admin-tab");
+  tabs.forEach((tab) => {
+    tab.addEventListener("click", () => {
+      tabs.forEach((t) => t.classList.remove("activa"));
+      tab.classList.add("activa");
+      const idTab = tab.dataset.tab;
+      document.querySelectorAll(".admin-tab-content").forEach((c) => c.classList.remove("activa"));
+      const contenido = document.querySelector(`#tab-${idTab}`);
+      if (contenido) contenido.classList.add("activa");
+
+      // Cargar contenido según tab
+      if (idTab === "comparativo") cargarComparativoSucursales();
+      if (idTab === "usuarios")    cargarUsuariosAdmin();
+    });
+  });
 }
 
 function crearSelectorSucursales() {
@@ -470,20 +517,15 @@ function exportarMovimientos() {
     return;
   }
 
-  let csv = "Fecha,Acción,Producto,Lote,Usuario,Sucursal,Detalle\n";
-  lista.forEach((m) => {
-    csv += `"${formatearFechaHora(m.createdAt)}","${m.accion}","${m.nombreProducto}","${m.lote || "Sin lote"}","${m.usuario?.nombre || "Sin datos"}","${m.sucursal?.nombre || "Sin sucursal"}","${m.detalle || "Sin detalle"}"\n`;
-  });
-
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const enlace = document.createElement("a");
-  enlace.href = url;
-  enlace.download = `stockalert-historial-${Date.now()}.csv`;
-  enlace.click();
-  URL.revokeObjectURL(url);
-
-  Swal.fire({ icon: "success", title: "Historial exportado", text: "Se descargó el archivo CSV.", timer: 1600, showConfirmButton: false });
+  if (window.XLSX) {
+    exportarMovimientosXLSX(lista);
+  } else {
+    const script = document.createElement("script");
+    script.src = "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js";
+    script.onload = () => exportarMovimientosXLSX(lista);
+    script.onerror = () => exportarMovimientosCSV(lista);
+    document.head.appendChild(script);
+  }
 }
 
 formRegistro.addEventListener("submit", registrarUsuario);
@@ -610,6 +652,7 @@ function cerrarSesion() {
 }
 
 async function cargarProductosAPI() {
+  mostrarSkeleton(true);
   try {
     let url = `${API_URL}/api/productos`;
     if (usuarioActivo?.rol === "admin" && sucursalSeleccionada) {
@@ -621,13 +664,15 @@ async function cargarProductosAPI() {
     if (!respuesta.ok) throw new Error(data.mensaje || "Error al cargar productos");
 
     productos = data.map(normalizarProducto);
-
+    mostrarSkeleton(false);
     renderizarProductos(productos);
     actualizarResumen(productos);
     mostrarAlertasVencimiento();
     actualizarGraficos(productos);
     actualizarPanelPremium(productos);
+    if (usuarioActivo?.rol === "admin") cargarComparativoSucursales();
   } catch (error) {
+    mostrarSkeleton(false);
     Swal.fire({ icon: "error", title: "Error de conexión", text: "No se pudieron cargar los productos de la sucursal." });
   }
 }
@@ -721,6 +766,7 @@ function renderizarProductosPaginados() {
       <div class="botones">
         <button class="btn-editar" data-id="${producto.id}">Editar</button>
         <button class="btn-eliminar" data-id="${producto.id}">Eliminar</button>
+        ${usuarioActivo?.rol === "admin" ? `<button class="btn-transferir" onclick="transferirProducto('${producto.id}')" title="Transferir a otra sucursal">↗</button>` : ""}
       </div>
     `;
 
@@ -735,6 +781,9 @@ function renderizarProductosPaginados() {
       ? `Mostrando ${inicio + 1}–${Math.min(fin, total)} de ${total} productos`
       : "";
   }
+
+  // Aplicar vista actual
+  aplicarClaseVista();
 }
 
 function renderizarBotonesPaginacionProductos(totalPaginas) {
@@ -1054,36 +1103,68 @@ function actualizarResumen(listaProductos) {
 }
 
 function mostrarAlertasVencimiento() {
-  const vencidosLista   = productos.filter((p) => obtenerEstadoProducto(p.vencimiento).clase === "vencido");
-  const porVencerLista  = productos.filter((p) => obtenerEstadoProducto(p.vencimiento).clase === "por-vencer");
+  const vencidosLista  = productos.filter((p) => obtenerEstadoProducto(p.vencimiento).clase === "vencido");
+  const porVencerLista = productos.filter((p) => obtenerEstadoProducto(p.vencimiento).clase === "por-vencer");
 
   if (vencidosLista.length === 0 && porVencerLista.length === 0) return;
 
-  let html = "";
+  const totalAlertas = vencidosLista.length + porVencerLista.length;
 
-  if (vencidosLista.length > 0) {
-    html += `
-      <div style="margin-bottom:20px; text-align:left;">
-        <h3 style="color:#d90429;">Productos vencidos (${vencidosLista.length})</h3>
-        <ul style="padding-left:20px;">
-          ${vencidosLista.map((p) => `<li>${p.nombre} - Lote: ${p.lote || "Sin lote"}</li>`).join("")}
-        </ul>
+  // Mostrar máximo 3 productos de cada categoría en el popup
+  const MAX_PREVIEW = 3;
+
+  function buildPreview(lista, color, etiqueta) {
+    if (lista.length === 0) return "";
+    const preview = lista.slice(0, MAX_PREVIEW);
+    const resto   = lista.length - MAX_PREVIEW;
+    const items   = preview.map((p) =>
+      `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f1f5f9;">
+        <span style="width:8px;height:8px;border-radius:50%;background:${color};flex-shrink:0;display:inline-block;"></span>
+        <span style="font-size:.88rem;font-weight:600;color:#1e293b;">${p.nombre}</span>
+        ${p.lote ? `<span style="font-size:.75rem;color:#94a3b8;margin-left:auto;">Lote ${p.lote}</span>` : ""}
+      </div>`
+    ).join("");
+
+    const masItems = resto > 0
+      ? `<p style="font-size:.78rem;color:#94a3b8;margin-top:6px;text-align:right;">+ ${resto} más...</p>`
+      : "";
+
+    return `
+      <div style="margin-bottom:14px;text-align:left;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+          <span style="background:${color};color:white;font-size:.7rem;font-weight:800;padding:3px 8px;border-radius:999px;">${lista.length}</span>
+          <span style="font-size:.82rem;font-weight:700;color:${color};">${etiqueta}</span>
+        </div>
+        <div style="background:#f8fafc;border-radius:10px;padding:4px 12px;">
+          ${items}
+        </div>
+        ${masItems}
       </div>
     `;
   }
 
-  if (porVencerLista.length > 0) {
-    html += `
-      <div style="text-align:left;">
-        <h3 style="color:#f4a261;">Productos por vencer (${porVencerLista.length})</h3>
-        <ul style="padding-left:20px;">
-          ${porVencerLista.map((p) => `<li>${p.nombre} - Lote: ${p.lote || "Sin lote"}</li>`).join("")}
-        </ul>
-      </div>
-    `;
-  }
+  const html = `
+    <div style="text-align:left;">
+      ${buildPreview(vencidosLista,  "#dc2626", "Productos vencidos")}
+      ${buildPreview(porVencerLista, "#f59e0b", "Próximos a vencer")}
+      <p style="font-size:.75rem;color:#94a3b8;text-align:center;margin-top:4px;">
+        Revisá el panel de alertas para ver el listado completo
+      </p>
+    </div>
+  `;
 
-  Swal.fire({ icon: "warning", title: "Alerta de vencimientos", html, confirmButtonText: "Entendido", width: 600 });
+  Swal.fire({
+    title: `🚨 ${totalAlertas} producto${totalAlertas !== 1 ? "s" : ""} requieren atención`,
+    html,
+    confirmButtonText: "Ver alertas",
+    showCancelButton: true,
+    cancelButtonText: "Cerrar",
+    width: Math.min(window.innerWidth - 32, 480),
+    customClass: {
+      popup: "swal-alerta-compacta",
+      title: "swal-alerta-titulo"
+    }
+  });
 }
 
 function cambiarModoOscuro() {
@@ -1138,21 +1219,80 @@ function exportarExcel() {
     return;
   }
 
-  let csv = "Producto,Lote,Categoría,Stock,Precio,EAN,Vencimiento,Estado,Estado stock,Sucursal,Creado por,Última edición,Actualizado\n";
+  // Usar SheetJS si está disponible, sino CSV compatible con Excel
+  if (window.XLSX) {
+    exportarXLSX();
+  } else {
+    // Cargar SheetJS dinámicamente
+    const script = document.createElement("script");
+    script.src = "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js";
+    script.onload = exportarXLSX;
+    script.onerror = exportarCSVCompatible;
+    document.head.appendChild(script);
+  }
+}
+
+function exportarXLSX() {
+  const XLSX = window.XLSX;
+
+  // Encabezados
+  const encabezados = ["Producto","Lote","Categoría","Stock","Precio","EAN","Vencimiento","Estado","Estado Stock","Sucursal","Creado por","Última edición","Fecha actualización"];
+
+  const filas = productos.map((p) => [
+    p.nombre,
+    p.lote || "",
+    p.categoria,
+    Number(p.stock),
+    Number(p.precio),
+    p.codigoBarras || "",
+    formatearFecha(p.vencimiento),
+    obtenerEstadoProducto(p.vencimiento).texto,
+    obtenerEstadoStock(p.stock).texto,
+    obtenerNombreSucursalProducto(p),
+    obtenerNombreUsuario(p.creadoPor),
+    obtenerNombreUsuario(p.actualizadoPor),
+    formatearFechaHora(p.fechaUltimaActualizacion || p.updatedAt)
+  ]);
+
+  const hoja = XLSX.utils.aoa_to_sheet([encabezados, ...filas]);
+
+  // Ancho de columnas
+  hoja["!cols"] = [20,12,12,8,10,16,14,14,14,16,16,16,20].map(w => ({ wch: w }));
+
+  // Estilos de encabezado (solo con xlsx-style, aquí color básico)
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, hoja, "Inventario");
+
+  XLSX.writeFile(wb, `StockAlert-Inventario-${new Date().toLocaleDateString("es-AR").replace(/\//g,"-")}.xlsx`);
+
+  Swal.fire({ icon: "success", title: "Exportado correctamente", text: "Archivo .xlsx listo para abrir en Excel.", timer: 1800, showConfirmButton: false });
+}
+
+function exportarCSVCompatible() {
+  // CSV con BOM para que Excel lo abra correctamente con tildes
+  let csv = "\uFEFF"; // BOM UTF-8
+  csv += "Producto\tLote\tCategoría\tStock\tPrecio\tEAN\tVencimiento\tEstado\tEstado Stock\tSucursal\tCreado por\tÚltima edición\tActualizado\n";
 
   productos.forEach((p) => {
-    csv += `"${p.nombre}","${p.lote || ""}","${p.categoria}",${p.stock},${p.precio},"${p.codigoBarras || "Sin EAN"}","${formatearFecha(p.vencimiento)}","${obtenerEstadoProducto(p.vencimiento).texto}","${obtenerEstadoStock(p.stock).texto}","${obtenerNombreSucursalProducto(p)}","${obtenerNombreUsuario(p.creadoPor)}","${obtenerNombreUsuario(p.actualizadoPor)}","${formatearFechaHora(p.fechaUltimaActualizacion || p.updatedAt)}"\n`;
+    const fila = [
+      p.nombre, p.lote || "", p.categoria, p.stock, p.precio,
+      p.codigoBarras || "", formatearFecha(p.vencimiento),
+      obtenerEstadoProducto(p.vencimiento).texto, obtenerEstadoStock(p.stock).texto,
+      obtenerNombreSucursalProducto(p), obtenerNombreUsuario(p.creadoPor),
+      obtenerNombreUsuario(p.actualizadoPor), formatearFechaHora(p.fechaUltimaActualizacion || p.updatedAt)
+    ].map(v => String(v).replace(/\t/g, " "));
+    csv += fila.join("\t") + "\n";
   });
 
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const blob = new Blob([csv], { type: "text/tab-separated-values;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
   const enlace = document.createElement("a");
   enlace.href = url;
-  enlace.download = `stockalert-inventario-${Date.now()}.csv`;
+  enlace.download = `StockAlert-Inventario-${Date.now()}.csv`;
   enlace.click();
   URL.revokeObjectURL(url);
 
-  Swal.fire({ icon: "success", title: "Inventario exportado", text: "Se descargó el archivo CSV.", timer: 1600, showConfirmButton: false });
+  Swal.fire({ icon: "success", title: "Exportado", text: "CSV compatible con Excel.", timer: 1600, showConfirmButton: false });
 }
 
 function importarExcel() {
@@ -1355,6 +1495,15 @@ function actualizarPanelPremium(listaProductos) {
   kpiValorRiesgo.textContent = valorRiesgo.toLocaleString("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 });
   kpiVencenHoy.textContent   = porVencer.length;
 
+  // Tendencias
+  calcularTendencia(criticos.length,  kpiPrevio.criticos,    "kpiCriticosTend");
+  calcularTendencia(porVencer.length, kpiPrevio.porVencer,   "kpiVencenTend");
+
+  // Guardar para próxima comparación
+  kpiPrevio.criticos   = criticos.length;
+  kpiPrevio.porVencer  = porVencer.length;
+  kpiPrevio.valorRiesgo= valorRiesgo;
+
   const conteoSucursales = {};
   productosEnRiesgo.forEach((p) => {
     const nombre = obtenerNombreSucursalProducto(p) || "Sin sucursal";
@@ -1452,4 +1601,505 @@ function actualizarPanelPremium(listaProductos) {
     `;
     rankingRiesgo.appendChild(card);
   });
+}
+
+// ========================= //
+// SKELETON LOADING          //
+// ========================= //
+
+function mostrarSkeleton(mostrar) {
+  const skeleton = document.querySelector("#skeletonProductos");
+  const contenedor = document.querySelector("#contenedorProductos");
+  const paginacion = document.querySelector("#paginacionProductos");
+  if (!skeleton) return;
+  if (mostrar) {
+    skeleton.classList.remove("oculto");
+    if (contenedor) contenedor.innerHTML = "";
+    if (paginacion) paginacion.innerHTML = "";
+  } else {
+    skeleton.classList.add("oculto");
+  }
+}
+
+// ========================= //
+// TOGGLE VISTA CARDS/LISTA  //
+// ========================= //
+
+function iniciarToggleVista() {
+  const btnCards = document.querySelector("#btnVistaCards");
+  const btnLista = document.querySelector("#btnVistaLista");
+  if (!btnCards || !btnLista) return;
+
+  // Recuperar preferencia guardada
+  const vistaGuardada = localStorage.getItem("vistaProductos");
+  if (vistaGuardada) {
+    vistaActual = vistaGuardada;
+    if (vistaActual === "lista") {
+      btnCards.classList.remove("activa");
+      btnLista.classList.add("activa");
+    }
+  }
+
+  btnCards.addEventListener("click", () => {
+    vistaActual = "cards";
+    btnCards.classList.add("activa");
+    btnLista.classList.remove("activa");
+    localStorage.setItem("vistaProductos", "cards");
+    aplicarClaseVista();
+  });
+
+  btnLista.addEventListener("click", () => {
+    vistaActual = "lista";
+    btnLista.classList.add("activa");
+    btnCards.classList.remove("activa");
+    localStorage.setItem("vistaProductos", "lista");
+    aplicarClaseVista();
+  });
+}
+
+function aplicarClaseVista() {
+  const cont = document.querySelector("#contenedorProductos");
+  if (!cont) return;
+  if (vistaActual === "lista") {
+    cont.classList.add("vista-lista");
+  } else {
+    cont.classList.remove("vista-lista");
+  }
+}
+
+// ========================= //
+// BÚSQUEDA GLOBAL           //
+// ========================= //
+
+function iniciarBusquedaGlobal() {
+  const input = document.querySelector("#busquedaGlobalInput");
+  if (!input) return;
+
+  input.addEventListener("input", () => {
+    const texto = input.value.trim().toLowerCase();
+    const resultados = document.querySelector("#busquedaGlobalResultados");
+    if (!resultados) return;
+
+    if (!texto || texto.length < 2) {
+      resultados.innerHTML = '<p class="busqueda-hint">Escribí para buscar en todo el inventario</p>';
+      return;
+    }
+
+    if (!productos || productos.length === 0) {
+      resultados.innerHTML = '<p class="busqueda-vacio">No hay productos cargados</p>';
+      return;
+    }
+
+    const encontrados = productos.filter((p) =>
+      p.nombre.toLowerCase().includes(texto) ||
+      (p.codigoBarras || "").toLowerCase().includes(texto) ||
+      (p.lote || "").toLowerCase().includes(texto) ||
+      (p.categoria || "").toLowerCase().includes(texto)
+    ).slice(0, 8);
+
+    if (encontrados.length === 0) {
+      resultados.innerHTML = '<p class="busqueda-vacio">Sin resultados para "' + texto + '"</p>';
+      return;
+    }
+
+    resultados.innerHTML = encontrados.map((p) => {
+      const estado     = obtenerEstadoProducto(p.vencimiento);
+      const estadoStock= obtenerEstadoStock(p.stock);
+      const colorEstado= estado.clase === "vencido" ? "#dc2626" : estado.clase === "por-vencer" ? "#f59e0b" : "#22c55e";
+      const badgeColor = estado.clase === "vencido" ? "rgba(220,38,38,.12)" : estado.clase === "por-vencer" ? "rgba(245,158,11,.12)" : "rgba(34,197,94,.12)";
+      const badgeText  = estado.clase === "vencido" ? "#991b1b" : estado.clase === "por-vencer" ? "#92400e" : "#166534";
+
+      return `
+        <div class="busqueda-resultado-item" onclick="irAProducto('${p.id}')">
+          <span class="busqueda-resultado-estado" style="background:${colorEstado}"></span>
+          <div class="busqueda-resultado-info">
+            <div class="busqueda-resultado-nombre">${p.nombre}</div>
+            <div class="busqueda-resultado-sub">${p.categoria} · Stock: ${p.stock} · Vence: ${formatearFecha(p.vencimiento)}</div>
+          </div>
+          <span class="busqueda-resultado-badge" style="background:${badgeColor};color:${badgeText}">${estado.texto}</span>
+        </div>
+      `;
+    }).join("");
+  });
+}
+
+function irAProducto(id) {
+  // Cerrar búsqueda
+  const overlay = document.querySelector("#busquedaOverlay");
+  const input   = document.querySelector("#busquedaGlobalInput");
+  if (overlay) overlay.classList.remove("activo");
+  if (input)   input.value = "";
+
+  // Limpiar filtros y buscar el producto
+  const buscadorEl = document.querySelector("#buscador");
+  const producto   = productos.find((p) => p.id === id);
+  if (!producto || !buscadorEl) return;
+
+  buscadorEl.value = producto.nombre;
+  aplicarFiltros();
+
+  // Scroll a la sección de productos
+  setTimeout(() => {
+    const sec = document.querySelector("#seccionProductos");
+    if (sec) sec.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, 100);
+}
+
+// ========================= //
+// KPI TENDENCIAS            //
+// ========================= //
+
+function calcularTendencia(actual, anterior, elementoId) {
+  const el = document.querySelector(`#${elementoId}`);
+  if (!el || anterior === null) return;
+
+  if (actual > anterior) {
+    el.textContent = `↑ +${actual - anterior} vs antes`;
+    el.className = "kpi-tendencia sube";
+  } else if (actual < anterior) {
+    el.textContent = `↓ -${anterior - actual} vs antes`;
+    el.className = "kpi-tendencia baja";
+  } else {
+    el.textContent = "= Sin cambios";
+    el.className = "kpi-tendencia igual";
+  }
+}
+
+// ========================= //
+// EXPORT MOVIMIENTOS XLSX   //
+// ========================= //
+
+function exportarMovimientosXLSX(lista) {
+  const XLSX = window.XLSX;
+  const encabezados = ["Fecha","Acción","Producto","Lote","Usuario","Sucursal","Detalle"];
+  const filas = lista.map((m) => [
+    formatearFechaHora(m.createdAt), m.accion, m.nombreProducto,
+    m.lote || "Sin lote", m.usuario?.nombre || "Sin datos",
+    m.sucursal?.nombre || "Sin sucursal", m.detalle || "Sin detalle"
+  ]);
+
+  const hoja = XLSX.utils.aoa_to_sheet([encabezados, ...filas]);
+  hoja["!cols"] = [20,10,20,12,16,16,30].map(w => ({ wch: w }));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, hoja, "Historial");
+  XLSX.writeFile(wb, `StockAlert-Historial-${new Date().toLocaleDateString("es-AR").replace(/\//g,"-")}.xlsx`);
+
+  Swal.fire({ icon: "success", title: "Historial exportado", text: "Archivo .xlsx listo para Excel.", timer: 1600, showConfirmButton: false });
+}
+
+function exportarMovimientosCSV(lista) {
+  let csv = "\uFEFF";
+  csv += "Fecha\tAcción\tProducto\tLote\tUsuario\tSucursal\tDetalle\n";
+  lista.forEach((m) => {
+    csv += [
+      formatearFechaHora(m.createdAt), m.accion, m.nombreProducto,
+      m.lote || "Sin lote", m.usuario?.nombre || "Sin datos",
+      m.sucursal?.nombre || "Sin sucursal", m.detalle || "Sin detalle"
+    ].join("\t") + "\n";
+  });
+  const blob = new Blob([csv], { type: "text/tab-separated-values;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = `StockAlert-Historial-${Date.now()}.csv`; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ========================= //
+// PANEL ADMIN AVANZADO      //
+// ========================= //
+
+async function cargarPanelAdminAvanzado() {
+  if (usuarioActivo?.rol !== "admin") return;
+
+  // Cargar usuarios
+  await cargarUsuariosAdmin();
+
+  // Cargar comparativo sucursales
+  await cargarComparativoSucursales();
+}
+
+async function cargarUsuariosAdmin() {
+  const contenedor = document.querySelector("#tablaUsuariosAdmin");
+  if (!contenedor) return;
+
+  try {
+    const respuesta = await fetch(`${API_URL}/api/usuarios`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const data = await respuesta.json();
+    if (!respuesta.ok) throw new Error(data.mensaje || "Error");
+
+    if (data.length === 0) {
+      contenedor.innerHTML = `<p class="mensaje-vacio">No hay usuarios registrados.</p>`;
+      return;
+    }
+
+    contenedor.innerHTML = `
+      <div class="tabla-usuarios-wrap">
+        <table class="tabla-admin">
+          <thead>
+            <tr>
+              <th>Usuario</th>
+              <th>Email</th>
+              <th>Sucursal</th>
+              <th>Rol</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${data.map((u) => `
+              <tr class="${u.activo === false ? "usuario-inactivo" : ""}">
+                <td><strong>${u.nombre}</strong></td>
+                <td>${u.email}</td>
+                <td>${u.sucursal?.nombre || "Sin sucursal"}</td>
+                <td>
+                  <select class="select-rol" data-id="${u._id}" onchange="cambiarRolUsuario('${u._id}', this.value)">
+                    <option value="admin"  ${u.rol === "admin"  ? "selected" : ""}>Admin</option>
+                    <option value="jefe"   ${u.rol === "jefe"   ? "selected" : ""}>Jefe</option>
+                    <option value="usuario"${u.rol === "usuario" ? "selected" : ""}>Usuario</option>
+                  </select>
+                </td>
+                <td>
+                  <span class="badge-estado-usuario ${u.activo === false ? "inactivo" : "activo"}">
+                    ${u.activo === false ? "Inactivo" : "Activo"}
+                  </span>
+                </td>
+                <td class="acciones-usuario">
+                  <button class="btn-toggle-usuario" onclick="toggleActivarUsuario('${u._id}', ${u.activo !== false})" title="${u.activo === false ? "Activar" : "Desactivar"}">
+                    ${u.activo === false ? "✅ Activar" : "🚫 Desactivar"}
+                  </button>
+                </td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
+    `;
+  } catch (error) {
+    contenedor.innerHTML = `<p class="mensaje-vacio">No se pudieron cargar los usuarios. (Requiere endpoint /api/usuarios en el backend)</p>`;
+  }
+}
+
+async function cambiarRolUsuario(idUsuario, nuevoRol) {
+  try {
+    const respuesta = await fetch(`${API_URL}/api/usuarios/${idUsuario}/rol`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ rol: nuevoRol })
+    });
+    const data = await respuesta.json();
+    if (!respuesta.ok) throw new Error(data.mensaje || "Error al cambiar rol");
+
+    Swal.fire({ icon: "success", title: "Rol actualizado", text: `Usuario actualizado a ${nuevoRol}.`, timer: 1400, showConfirmButton: false });
+  } catch (error) {
+    Swal.fire({ icon: "error", title: "Error", text: error.message });
+    await cargarUsuariosAdmin(); // revertir UI
+  }
+}
+
+async function toggleActivarUsuario(idUsuario, estaActivo) {
+  const accion = estaActivo ? "desactivar" : "activar";
+
+  const resultado = await Swal.fire({
+    title: `¿${accion.charAt(0).toUpperCase() + accion.slice(1)} usuario?`,
+    text: estaActivo ? "El usuario no podrá iniciar sesión." : "El usuario podrá volver a iniciar sesión.",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: `Sí, ${accion}`,
+    cancelButtonText: "Cancelar"
+  });
+
+  if (!resultado.isConfirmed) return;
+
+  try {
+    const respuesta = await fetch(`${API_URL}/api/usuarios/${idUsuario}/estado`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ activo: !estaActivo })
+    });
+    const data = await respuesta.json();
+    if (!respuesta.ok) throw new Error(data.mensaje || "Error");
+
+    Swal.fire({ icon: "success", title: `Usuario ${accion === "activar" ? "activado" : "desactivado"}`, timer: 1400, showConfirmButton: false });
+    await cargarUsuariosAdmin();
+  } catch (error) {
+    Swal.fire({ icon: "error", title: "Error", text: error.message });
+  }
+}
+
+async function cargarComparativoSucursales() {
+  const contenedor = document.querySelector("#comparativoSucursales");
+  if (!contenedor) return;
+
+  try {
+    const respuesta = await fetch(`${API_URL}/api/sucursales/resumen`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const data = await respuesta.json();
+    if (!respuesta.ok) throw new Error(data.mensaje);
+
+    if (!data || data.length === 0) {
+      contenedor.innerHTML = `<p class="mensaje-vacio">Sin datos de sucursales.</p>`;
+      return;
+    }
+
+    // Ranking por riesgo
+    const ranking = [...data].sort((a, b) => (b.vencidos + b.porVencer) - (a.vencidos + a.porVencer));
+
+    contenedor.innerHTML = `
+      <div class="comparativo-grid">
+        ${ranking.map((s, i) => {
+          const riesgo = s.vencidos + s.porVencer;
+          const colorRiesgo = riesgo === 0 ? "var(--verde)" : riesgo <= 3 ? "var(--amarillo)" : "var(--rojo)";
+          return `
+            <div class="card-comparativo">
+              <div class="comparativo-header">
+                <span class="comparativo-pos">${i + 1}</span>
+                <h3>${s.sucursal.nombre}</h3>
+                <span class="comparativo-riesgo" style="color:${colorRiesgo}">⚠️ ${riesgo} en riesgo</span>
+              </div>
+              <div class="comparativo-stats">
+                <div class="stat-item"><span>${s.totalProductos}</span><small>Productos</small></div>
+                <div class="stat-item"><span style="color:var(--amarillo)">${s.porVencer}</span><small>Por vencer</small></div>
+                <div class="stat-item"><span style="color:var(--rojo)">${s.vencidos}</span><small>Vencidos</small></div>
+                <div class="stat-item"><span style="color:var(--violeta)">${s.stockCritico}</span><small>Stock crítico</small></div>
+                <div class="stat-item"><span style="color:var(--verde)">${s.valorInventario?.toLocaleString("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }) || "$0"}</span><small>Valor</small></div>
+              </div>
+              <div class="comparativo-barra">
+                <div class="barra-fill" style="width:${Math.min(100, riesgo * 10)}%;background:${colorRiesgo}"></div>
+              </div>
+            </div>
+          `;
+        }).join("")}
+      </div>
+    `;
+  } catch (error) {
+    contenedor.innerHTML = `<p class="mensaje-vacio">No se pudo cargar el comparativo.</p>`;
+  }
+}
+
+async function transferirProducto(idProducto) {
+  if (sucursales.length === 0) {
+    Swal.fire({ icon: "warning", title: "Sin sucursales", text: "No hay sucursales disponibles." });
+    return;
+  }
+
+  const producto = productos.find((p) => p.id === idProducto);
+  if (!producto) return;
+
+  const opcionesSucursales = sucursales
+    .filter((s) => s._id !== (producto.sucursal?._id || producto.sucursal))
+    .map((s) => `<option value="${s._id}">${s.nombre}</option>`)
+    .join("");
+
+  const resultado = await Swal.fire({
+    title: `Transferir "${producto.nombre}"`,
+    html: `
+      <p style="margin-bottom:12px;color:#64748b;font-size:.9rem;">Seleccioná la sucursal destino</p>
+      <select id="sucursalDestino" class="swal2-input" style="width:85%;margin:0 auto;display:block">
+        ${opcionesSucursales}
+      </select>
+    `,
+    showCancelButton: true,
+    confirmButtonText: "Transferir",
+    cancelButtonText: "Cancelar",
+    preConfirm: () => {
+      const destino = document.querySelector("#sucursalDestino").value;
+      if (!destino) { Swal.showValidationMessage("Seleccioná una sucursal"); return false; }
+      return destino;
+    }
+  });
+
+  if (!resultado.isConfirmed) return;
+
+  try {
+    const respuesta = await fetch(`${API_URL}/api/productos/${idProducto}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ sucursal: resultado.value })
+    });
+    const data = await respuesta.json();
+    if (!respuesta.ok) throw new Error(data.mensaje || "Error al transferir");
+
+    productos = productos.map((p) => p.id === idProducto ? normalizarProducto(data) : p);
+    aplicarFiltros();
+    await cargarResumenSucursales();
+    await cargarComparativoSucursales();
+
+    const sucursalNombre = sucursales.find((s) => s._id === resultado.value)?.nombre || "otra sucursal";
+    Swal.fire({ icon: "success", title: "Producto transferido", text: `Movido a ${sucursalNombre}.`, timer: 1800, showConfirmButton: false });
+  } catch (error) {
+    Swal.fire({ icon: "error", title: "Error", text: error.message });
+  }
+}
+
+// Configuración de alertas
+async function abrirConfigAlertas() {
+  const diasActual = parseInt(localStorage.getItem("diasAlertaVencimiento") || "7");
+  const stockActual = parseInt(localStorage.getItem("umbralStockBajo") || "5");
+
+  const resultado = await Swal.fire({
+    title: "⚙️ Configurar alertas",
+    html: `
+      <div style="text-align:left;padding:0 8px">
+        <label style="display:block;font-weight:700;margin-bottom:6px;font-size:.88rem;color:#334155">
+          📅 Días de anticipación para alertar vencimientos
+        </label>
+        <input id="diasAlerta" type="number" min="1" max="60" value="${diasActual}"
+          class="swal2-input" style="width:100%;margin:0 0 16px">
+
+        <label style="display:block;font-weight:700;margin-bottom:6px;font-size:.88rem;color:#334155">
+          📦 Umbral de stock bajo (unidades)
+        </label>
+        <input id="umbralStock" type="number" min="1" max="100" value="${stockActual}"
+          class="swal2-input" style="width:100%;margin:0">
+      </div>
+    `,
+    showCancelButton: true,
+    confirmButtonText: "Guardar",
+    cancelButtonText: "Cancelar",
+    preConfirm: () => {
+      const dias   = parseInt(document.querySelector("#diasAlerta").value);
+      const umbral = parseInt(document.querySelector("#umbralStock").value);
+      if (isNaN(dias) || dias < 1)   { Swal.showValidationMessage("Días inválido"); return false; }
+      if (isNaN(umbral) || umbral < 1){ Swal.showValidationMessage("Umbral inválido"); return false; }
+      return { dias, umbral };
+    }
+  });
+
+  if (!resultado.isConfirmed) return;
+
+  localStorage.setItem("diasAlertaVencimiento", resultado.value.dias);
+  localStorage.setItem("umbralStockBajo", resultado.value.umbral);
+
+  Swal.fire({ icon: "success", title: "Configuración guardada", text: `Alertas: ${resultado.value.dias} días. Stock bajo: ≤${resultado.value.umbral} unidades.`, timer: 2000, showConfirmButton: false });
+
+  // Re-renderizar con nueva configuración
+  if (productos.length > 0) {
+    renderizarProductos(productos);
+    actualizarResumen(productos);
+    actualizarPanelPremium(productos);
+  }
+}
+
+// Modificar obtenerEstadoProducto para usar configuración dinámica
+const _obtenerEstadoOriginal = obtenerEstadoProducto;
+// Override dinámico
+function obtenerEstadoProductoConf(fechaVencimiento) {
+  const dias = parseInt(localStorage.getItem("diasAlertaVencimiento") || "7");
+  const hoy  = new Date();
+  const venc  = new Date(fechaVencimiento);
+  const diff  = Math.ceil((venc - hoy) / (1000 * 60 * 60 * 24));
+  if (diff < 0)     return { texto: "Vencido",       clase: "vencido" };
+  if (diff <= dias) return { texto: "Por vencer",    clase: "por-vencer" };
+  return              { texto: "En buen estado", clase: "ok" };
+}
+
+function obtenerEstadoStockConf(stock) {
+  const umbral = parseInt(localStorage.getItem("umbralStockBajo") || "5");
+  if (stock <= 0)        return { texto: "Agotado",       clase: "agotado" };
+  if (stock <= umbral)   return { texto: "Stock crítico", clase: "stock-critico" };
+  if (stock <= umbral*2) return { texto: "Stock bajo",    clase: "stock-bajo" };
+  return                        { texto: "Stock normal",  clase: "stock-normal" };
 }
