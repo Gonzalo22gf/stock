@@ -1319,13 +1319,45 @@ body.light .badge-estado-usuario.inactivo { color:#b91c1c; }
    SCANNER PROFESIONAL
 =========================== */
 .lector {
-  grid-column: 1 / -1;
-  max-width: 420px;
-  margin: 8px auto;
+  grid-column: 1 / -1 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0;
   border-radius: var(--radius);
   overflow: hidden;
   background: #000;
   position: relative;
+}
+
+/* Solo cuando está visible */
+#lectorCodigo:not(.oculto) {
+  display: block !important;
+  min-height: 280px;
+  margin: 8px 0;
+}
+
+#lectorCodigo:not(.oculto) video {
+  width: 100% !important;
+  height: 280px !important;
+  object-fit: cover;
+  display: block !important;
+}
+
+#lectorCodigo:not(.oculto) > div {
+  width: 100% !important;
+  min-height: 280px !important;
+}
+
+/* El overlay de esquinas va sobre el video sin bloquearlo */
+.scanner-overlay-wrap {
+  position: absolute;
+  top: 50px; /* debajo del header */
+  left: 0; right: 0; bottom: 40px; /* encima del footer */
+  pointer-events: none;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .scanner-ui-wrap {
@@ -1372,24 +1404,9 @@ body.light .badge-estado-usuario.inactivo { color:#b91c1c; }
 
 /* Viewfinder overlay */
 .scanner-viewfinder {
-  position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  width: 220px; height: 110px;
-  z-index: 20;
-  pointer-events: none;
-}
-
-/* El video de Html5Qrcode va en z-index menor */
-#lectorCodigoVideo {
   position: relative;
-  z-index: 1;
-  min-height: 200px;
-}
-
-#lectorCodigoVideo video {
-  width: 100% !important;
-  border-radius: 0;
+  width: 220px; height: 110px;
+  pointer-events: none;
 }
 
 .scanner-corner {
@@ -1744,3 +1761,85 @@ body.light .swal2-cancel { color:var(--red) !important; }
 }
 
 .sucursal-card.oculta { display: none; }
+
+/* ========================= */
+/* MÓVIL - DASHBOARD FIXES   */
+/* ========================= */
+
+@media (max-width: 700px) {
+
+  /* Acciones urgentes - cards más compactas */
+  .data-table tbody tr {
+    padding: 10px 12px;
+    gap: 3px 8px;
+  }
+
+  .data-table td:nth-child(1) {
+    font-size: .88rem;
+    font-weight: 800;
+    padding-bottom: 6px;
+    margin-bottom: 2px;
+  }
+
+  .data-table td:nth-child(2),
+  .data-table td:nth-child(3),
+  .data-table td:nth-child(4),
+  .data-table td:nth-child(5) {
+    font-size: .74rem;
+  }
+
+  .data-table td:nth-child(2)::before { content: "Lote: ";     font-weight: 700; color: var(--text-4); font-size: .65rem; }
+  .data-table td:nth-child(3)::before { content: "Sucursal: "; font-weight: 700; color: var(--text-4); font-size: .65rem; }
+  .data-table td:nth-child(4)::before { content: "Vence: ";    font-weight: 700; color: var(--text-4); font-size: .65rem; }
+  .data-table td:nth-child(5)::before { content: "Stock: ";    font-weight: 700; color: var(--text-4); font-size: .65rem; }
+
+  /* Ranking compacto */
+  .ranking-list { gap: 5px; }
+
+  .ranking-item {
+    padding: 9px 11px;
+    gap: 9px;
+  }
+
+  .rank-num {
+    width: 26px;
+    height: 26px;
+    font-size: .7rem;
+    flex-shrink: 0;
+  }
+
+  .rank-name {
+    font-size: .82rem;
+    font-weight: 700;
+  }
+
+  .rank-sub {
+    font-size: .66rem;
+    color: var(--text-4);
+  }
+
+  .rank-score {
+    font-size: .66rem;
+    padding: 2px 7px;
+    flex-shrink: 0;
+  }
+
+  /* Panel ranking - sin altura máxima */
+  .panel-ranking,
+  .ranking-list {
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  /* Two col en una columna */
+  .two-col-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+
+  /* Cards del dashboard más compactas */
+  .card { padding: 14px; }
+  .card-header { margin-bottom: 10px; }
+  .card-header h2 { font-size: .85rem; }
+}

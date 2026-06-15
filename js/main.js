@@ -1226,26 +1226,14 @@ function aplicarModoGuardado() {
 async function iniciarEscaner() {
   if (escanerActivo) { await detenerEscaner(); return; }
 
-  const lectorEl = document.querySelector("#lectorCodigo");
-  if (!lectorEl) return;
-  lectorEl.classList.remove("oculto");
-
-  // Html5Qrcode necesita un div limpio con ID — usar lectorCodigoVideo
-  let videoTarget = document.getElementById("lectorCodigoVideo");
-  if (!videoTarget) {
-    videoTarget = document.createElement("div");
-    videoTarget.id = "lectorCodigoVideo";
-    videoTarget.style.cssText = "width:100%;min-height:200px;position:relative;z-index:1;";
-    // Insertar antes del viewfinder si existe, sino al principio
-    const inner = document.getElementById("lectorCodigoInner");
-    if (inner) {
-      inner.insertBefore(videoTarget, inner.firstChild);
-    } else {
-      lectorEl.appendChild(videoTarget);
-    }
+  // Buscar dinámicamente por si la variable global quedó null
+  const lectorEl = document.getElementById("lectorCodigo");
+  if (!lectorEl) {
+    Swal.fire({ icon: "error", title: "Error", text: "No se encontró el elemento del escáner." });
+    return;
   }
-
-  html5QrCode = new Html5Qrcode("lectorCodigoVideo");
+  lectorEl.classList.remove("oculto");
+  html5QrCode = new Html5Qrcode("lectorCodigo");
 
   try {
     await html5QrCode.start(
@@ -1262,8 +1250,8 @@ async function iniciarEscaner() {
       btnEscanear.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg> Detener escáner`;
     }
   } catch (error) {
-    const lectorEl2 = document.querySelector("#lectorCodigo");
-  if (lectorEl2) lectorEl2.classList.add("oculto");
+    const lectorElStop = document.getElementById("lectorCodigo");
+  if (lectorElStop) lectorElStop.classList.add("oculto");
     Swal.fire({ icon: "error", title: "Error de cámara", text: "No se pudo acceder a la cámara." });
   }
 }
@@ -1273,8 +1261,8 @@ async function detenerEscaner() {
     await html5QrCode.stop();
     await html5QrCode.clear();
   }
-  const lectorEl2 = document.querySelector("#lectorCodigo");
-  if (lectorEl2) lectorEl2.classList.add("oculto");
+  const lectorElStop = document.getElementById("lectorCodigo");
+  if (lectorElStop) lectorElStop.classList.add("oculto");
   escanerActivo = false;
   html5QrCode = null;
   if (btnEscanear) {
