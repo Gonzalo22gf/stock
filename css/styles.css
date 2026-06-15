@@ -779,3 +779,402 @@ body {
   color: #ffffff !important;
   border-color: #555 !important;
 }
+/* ========================= */
+/* BORDES COMBINADOS PRODUCTOS */
+/* ========================= */
+
+.card-producto {
+  border-left: 8px solid #1d3557;
+}
+
+.borde-ok {
+  border-left-color: #22c55e;
+}
+
+.borde-por-vencer {
+  border-left-color: #facc15;
+}
+
+.borde-vencido {
+  border-left-color: #dc2626;
+}
+
+.borde-ok-stock-bajo,
+.borde-ok-stock-critico {
+  border-left: 8px solid transparent;
+  border-image: linear-gradient(
+    to bottom,
+    #22c55e 0%,
+    #22c55e 50%,
+    #a855f7 50%,
+    #a855f7 100%
+  ) 1;
+}
+
+.borde-por-vencer-stock-bajo,
+.borde-por-vencer-stock-critico {
+  border-left: 8px solid transparent;
+  border-image: linear-gradient(
+    to bottom,
+    #facc15 0%,
+    #facc15 50%,
+    #a855f7 50%,
+    #a855f7 100%
+  ) 1;
+}
+
+.borde-vencido-stock-bajo,
+.borde-vencido-stock-critico {
+  border-left: 8px solid transparent;
+  border-image: linear-gradient(
+    to bottom,
+    #dc2626 0%,
+    #dc2626 50%,
+    #a855f7 50%,
+    #a855f7 100%
+  ) 1;
+}
+
+.borde-ok-agotado {
+  border-left: 8px solid transparent;
+  border-image: linear-gradient(
+    to bottom,
+    #22c55e 0%,
+    #22c55e 50%,
+    #dc2626 50%,
+    #dc2626 100%
+  ) 1;
+}
+
+.borde-por-vencer-agotado {
+  border-left: 8px solid transparent;
+  border-image: linear-gradient(
+    to bottom,
+    #facc15 0%,
+    #facc15 50%,
+    #dc2626 50%,
+    #dc2626 100%
+  ) 1;
+}
+
+.borde-vencido-agotado {
+  border-left: 8px solid #dc2626;
+}
+/* ========================= */
+/* PANEL DE DECISIONES PREMIUM */
+/* ========================= */
+
+#panelDecisiones {
+  border-left: 8px solid #2563eb;
+}
+
+#panelDecisiones h2 {
+  margin-bottom: 20px;
+}
+
+.kpis-decision {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.kpi-decision {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+  border-left: 7px solid #2563eb;
+  transition: all 0.25s ease;
+}
+
+.kpi-decision:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px rgba(0,0,0,0.12);
+}
+
+.kpi-decision span {
+  display: block;
+  font-size: 2rem;
+  font-weight: 900;
+  color: #1d3557;
+  margin-bottom: 6px;
+  word-break: break-word;
+}
+
+.kpi-decision p {
+  font-weight: 800;
+  color: #334155;
+}
+
+.kpi-decision.critico {
+  border-left-color: #dc2626;
+}
+
+.kpi-decision.riesgo {
+  border-left-color: #f59e0b;
+}
+
+.kpi-decision.vencer {
+  border-left-color: #facc15;
+}
+
+.kpi-decision.sucursal {
+  border-left-color: #22c55e;
+}
+
+#panelDecisiones h3 {
+  color: #1d3557;
+  margin: 22px 0 12px;
+}
+
+.tabla-urgencias-contenedor {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 16px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+}
+
+.tabla-urgencias {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  overflow: hidden;
+}
+
+.tabla-urgencias th,
+.tabla-urgencias td {
+  padding: 14px 16px;
+  text-align: left;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 0.92rem;
+}
+
+.tabla-urgencias th {
+  background: #1d3557;
+  color: white;
+  font-weight: 800;
+}
+
+.tabla-urgencias td {
+  color: #334155;
+  font-weight: 700;
+}
+
+.badge-prioridad {
+  display: inline-block;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.badge-prioridad.alta {
+  background: rgba(220, 38, 38, 0.18);
+  color: #991b1b;
+}
+
+.badge-prioridad.media {
+  background: rgba(250, 204, 21, 0.25);
+  color: #854d0e;
+}
+
+.badge-prioridad.baja {
+  background: rgba(34, 197, 94, 0.18);
+  color: #166534;
+}
+
+/* MODO OSCURO PANEL DECISIONES */
+
+.modo-oscuro .kpi-decision,
+.modo-oscuro .tabla-urgencias {
+  background: #1e1e1e;
+  color: #f8fafc;
+}
+
+.modo-oscuro .kpi-decision span,
+.modo-oscuro #panelDecisiones h3 {
+  color: #a8dadc;
+}
+
+.modo-oscuro .kpi-decision p,
+.modo-oscuro .tabla-urgencias td {
+  color: #cbd5e1;
+}
+
+.modo-oscuro .tabla-urgencias th {
+  background: #0d1b2a;
+}
+
+.modo-oscuro .tabla-urgencias td {
+  border-bottom-color: #334155;
+}
+
+/* RESPONSIVE PANEL DECISIONES */
+
+@media (max-width: 768px) {
+  .kpis-decision {
+    grid-template-columns: 1fr;
+  }
+
+  .tabla-urgencias th,
+  .tabla-urgencias td {
+    padding: 10px;
+    font-size: 0.82rem;
+  }
+} 
+.tabla-urgencias {
+  table-layout: fixed;
+}
+
+.tabla-urgencias th,
+.tabla-urgencias td {
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.tabla-urgencias th:nth-child(1),
+.tabla-urgencias td:nth-child(1) {
+  width: 22%;
+}
+
+.tabla-urgencias th:nth-child(2),
+.tabla-urgencias td:nth-child(2) {
+  width: 15%;
+}
+
+.tabla-urgencias th:nth-child(3),
+.tabla-urgencias td:nth-child(3) {
+  width: 18%;
+}
+
+.tabla-urgencias th:nth-child(4),
+.tabla-urgencias td:nth-child(4) {
+  width: 15%;
+}
+
+.tabla-urgencias th:nth-child(5),
+.tabla-urgencias td:nth-child(5) {
+  width: 10%;
+}
+
+.tabla-urgencias th:nth-child(6),
+.tabla-urgencias td:nth-child(6) {
+  width: 20%;
+}
+.panel-urgencias {
+    max-height: 450px;
+    overflow-y: auto;
+}
+.fila-vencida {
+    background: rgba(255, 0, 0, 0.05);
+}
+.fila-por-vencer {
+    background: rgba(255, 165, 0, 0.05);
+}
+/* ========================= */
+/* RANKING DE RIESGO PREMIUM */
+/* ========================= */
+
+.ranking-riesgo {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.item-riesgo {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+  border-left: 7px solid #dc2626;
+}
+
+.item-riesgo h4 {
+  color: #1d3557;
+  margin-bottom: 8px;
+  font-size: 1rem;
+}
+
+.item-riesgo p {
+  margin: 4px 0;
+  font-weight: 700;
+  color: #334155;
+  font-size: 0.86rem;
+}
+
+.item-riesgo .puntaje-riesgo {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(220, 38, 38, 0.18);
+  color: #991b1b;
+  font-weight: 900;
+  font-size: 0.78rem;
+}
+
+.modo-oscuro .item-riesgo {
+  background: #1e1e1e;
+}
+
+.modo-oscuro .item-riesgo h4 {
+  color: #a8dadc;
+}
+
+.modo-oscuro .item-riesgo p {
+  color: #cbd5e1;
+}
+/* ========================= */
+/* RANKING RIESGO MEJORADO */
+/* ========================= */
+
+.item-riesgo {
+  min-height: auto;
+  padding: 14px 16px;
+}
+
+.item-riesgo.alto {
+  border-left-color: #dc2626;
+}
+
+.item-riesgo.medio {
+  border-left-color: #f59e0b;
+}
+
+.item-riesgo.bajo {
+  border-left-color: #facc15;
+}
+
+.item-riesgo h4 {
+  margin-bottom: 8px;
+}
+
+.item-riesgo p {
+  margin: 3px 0;
+}
+
+.item-riesgo.alto .puntaje-riesgo {
+  background: rgba(220, 38, 38, 0.18);
+  color: #991b1b;
+}
+
+.item-riesgo.medio .puntaje-riesgo {
+  background: rgba(245, 158, 11, 0.18);
+  color: #92400e;
+}
+
+.item-riesgo.bajo .puntaje-riesgo {
+  background: rgba(250, 204, 21, 0.25);
+  color: #854d0e;
+}
+
+.kpi-decision span {
+  font-size: 2.2rem;
+  line-height: 1.1;
+}
+
+.kpi-decision.riesgo span {
+  font-size: 1.45rem;
+}

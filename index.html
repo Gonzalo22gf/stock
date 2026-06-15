@@ -246,6 +246,56 @@
       </article>
     </section>
 
+    <section id="panelDecisiones" class="panel seccion-app oculto">
+  <h2>📌 Panel de decisiones</h2>
+
+  <div class="kpis-decision">
+    <article class="kpi-decision critico">
+      <span id="kpiCriticos">0</span>
+      <p>Productos críticos</p>
+    </article>
+
+    <article class="kpi-decision riesgo">
+      <span id="kpiValorRiesgo">$0</span>
+      <p>Valor en riesgo</p>
+    </article>
+
+    <article class="kpi-decision vencer">
+      <span id="kpiVencenHoy">0</span>
+      <p>Vencen pronto</p>
+    </article>
+
+    <article class="kpi-decision sucursal">
+      <span id="kpiSucursalCritica">-</span>
+      <p>Sucursal más crítica</p>
+    </article>
+  </div>
+<h3>🏆 Top 10 productos más riesgosos</h3>
+
+<div id="rankingRiesgo" class="ranking-riesgo">
+  <!-- Ranking cargado con JavaScript -->
+</div>
+  <h3>🚨 Acciones urgentes</h3>
+
+  <!-- Ranking cargado con JavaScript -->
+</div>
+    <table class="tabla-urgencias">
+      <thead>
+        <tr>
+          <th>Producto</th>
+          <th>Lote</th>
+          <th>Sucursal</th>
+          <th>Vence</th>
+          <th>Stock</th>
+          <th>Prioridad</th>
+        </tr>
+      </thead>
+      <tbody id="tablaUrgencias">
+      </tbody>
+    </table>
+  </div>
+</section>
+
     <section id="dashboardGraficos" class="panel seccion-app oculto">
       <h2>📊 Dashboard Ejecutivo</h2>
 

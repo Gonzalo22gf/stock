@@ -711,9 +711,10 @@ async function cargarProductosAPI() {
     productos = data.map(normalizarProducto);
 
     renderizarProductos(productos);
-    actualizarResumen(productos);
-    mostrarAlertasVencimiento();
-    actualizarGraficos(productos);
+actualizarResumen(productos);
+mostrarAlertasVencimiento();
+actualizarGraficos(productos);
+actualizarPanelPremium(productos);
   } catch (error) {
     Swal.fire({
       icon: "error",
@@ -790,7 +791,14 @@ function renderizarProductos(listaProductos) {
     );
 
     const card = document.createElement("article");
-    card.classList.add("card-producto", estado.clase, estadoStock.clase);
+    const claseBorde = obtenerClaseBordeProducto(estado.clase, estadoStock.clase);
+
+card.classList.add(
+  "card-producto",
+  estado.clase,
+  estadoStock.clase,
+  claseBorde
+);
 
     card.innerHTML = `
       <h3>${producto.nombre}</h3>
@@ -854,7 +862,7 @@ function obtenerEstadoProducto(fechaVencimiento) {
 }
 
 function obtenerEstadoStock(stock) {
-  if (stock === 0) {
+  if (stock <= 0) {
     return {
       texto: "Agotado",
       clase: "agotado"
@@ -879,6 +887,18 @@ function obtenerEstadoStock(stock) {
     texto: "Stock normal",
     clase: "stock-normal"
   };
+}
+
+function obtenerClaseBordeProducto(estado, stock) {
+  if (stock === "stock-normal") return `borde-${estado}`;
+
+  if (stock === "stock-bajo") return `borde-${estado}-stock-bajo`;
+
+  if (stock === "stock-critico") return `borde-${estado}-stock-critico`;
+
+  if (stock === "agotado") return `borde-${estado}-agotado`;
+
+  return `borde-${estado}`;
 }
 
 function formatearFecha(fecha) {
@@ -1704,4 +1724,157 @@ function destruirGraficos() {
   chartCategorias = null;
   chartStockCategorias = null;
   chartValorInventario = null;
+}
+function actualizarPanelPremium(listaProductos) {
+  const kpiCriticos = document.querySelector("#kpiCriticos");
+  const kpiValorRiesgo = document.querySelector("#kpiValorRiesgo");
+  const kpiVencenHoy = document.querySelector("#kpiVencenHoy");
+  const kpiSucursalCritica = document.querySelector("#kpiSucursalCritica");
+  const tablaUrgencias = document.querySelector("#tablaUrgencias");
+  const rankingRiesgo = document.querySelector("#rankingRiesgo");
+
+  if (!kpiCriticos || !kpiValorRiesgo || !kpiVencenHoy || !kpiSucursalCritica || !tablaUrgencias) return;
+
+  const vencidos = listaProductos.filter(
+    (p) => obtenerEstadoProducto(p.vencimiento).clase === "vencido"
+  );
+
+  const porVencer = listaProductos.filter(
+    (p) => obtenerEstadoProducto(p.vencimiento).clase === "por-vencer"
+  );
+
+  const criticos = listaProductos.filter((p) => {
+    const stock = obtenerEstadoStock(Number(p.stock || 0)).clase;
+    return stock === "stock-critico" || stock === "agotado";
+  });
+
+  const productosEnRiesgo = [...vencidos, ...porVencer, ...criticos];
+
+  const valorRiesgo = productosEnRiesgo.reduce((total, p) => {
+    return total + Number(p.stock || 0) * Number(p.precio || 0);
+  }, 0);
+
+  kpiCriticos.textContent = criticos.length;
+  kpiValorRiesgo.textContent = valorRiesgo.toLocaleString("es-AR", {
+    style: "currency",
+    currency: "ARS",
+    maximumFractionDigits: 0
+  });
+  kpiVencenHoy.textContent = porVencer.length;
+
+  const conteoSucursales = {};
+
+  productosEnRiesgo.forEach((p) => {
+    const nombreSucursal = obtenerNombreSucursalProducto(p) || "Sin sucursal";
+    conteoSucursales[nombreSucursal] = (conteoSucursales[nombreSucursal] || 0) + 1;
+  });
+
+  const sucursalCritica =
+    Object.entries(conteoSucursales).sort((a, b) => b[1] - a[1])[0]?.[0] || "-";
+
+  kpiSucursalCritica.textContent = sucursalCritica;
+
+  const urgentes = [...vencidos, ...porVencer]
+    .sort((a, b) => new Date(a.vencimiento) - new Date(b.vencimiento))
+    .slice(0, 10);
+
+  tablaUrgencias.innerHTML = "";
+
+  urgentes.forEach((producto) => {
+    const estado = obtenerEstadoProducto(producto.vencimiento);
+    const prioridad = estado.clase === "vencido" ? "alta" : "media";
+
+    const fila = document.createElement("tr");
+
+    fila.innerHTML = `
+      <td>${producto.nombre}</td>
+      <td>${producto.lote || "Sin lote"}</td>
+      <td>${obtenerNombreSucursalProducto(producto) || "Sin sucursal"}</td>
+      <td>${formatearFecha(producto.vencimiento)}</td>
+      <td>${producto.stock}</td>
+      <td>
+        <span class="badge-prioridad ${prioridad}">
+          ${prioridad === "alta" ? "Alta" : "Media"}
+        </span>
+      </td>
+    `;
+
+    tablaUrgencias.appendChild(fila);
+  });
+
+  if (!rankingRiesgo) return;
+
+  const productosUnicos = [];
+
+  listaProductos.forEach((producto) => {
+    const clave = `${producto.nombre}-${producto.lote || "sin-lote"}-${producto.vencimiento}`;
+
+    const existe = productosUnicos.some((p) => {
+      const claveExistente = `${p.nombre}-${p.lote || "sin-lote"}-${p.vencimiento}`;
+      return claveExistente === clave;
+    });
+
+    if (!existe) productosUnicos.push(producto);
+  });
+
+  const productosRiesgosos = productosUnicos
+    .map((producto) => {
+      const estado = obtenerEstadoProducto(producto.vencimiento);
+      const estadoStock = obtenerEstadoStock(Number(producto.stock || 0));
+
+      let puntaje = 0;
+
+      if (estado.clase === "vencido") puntaje += 100;
+      if (estado.clase === "por-vencer") puntaje += 60;
+      if (estadoStock.clase === "agotado") puntaje += 50;
+      if (estadoStock.clase === "stock-critico") puntaje += 40;
+      if (estadoStock.clase === "stock-bajo") puntaje += 25;
+
+      const valor = Number(producto.stock || 0) * Number(producto.precio || 0);
+      puntaje += Math.min(valor / 10000, 50);
+
+      return {
+        ...producto,
+        puntaje,
+        valor
+      };
+    })
+    .filter((p) => p.puntaje > 0)
+    .sort((a, b) => b.puntaje - a.puntaje)
+    .slice(0, 10);
+
+  rankingRiesgo.innerHTML = "";
+
+  if (productosRiesgosos.length === 0) {
+    rankingRiesgo.innerHTML = `
+      <p class="mensaje-vacio">No hay productos riesgosos para mostrar.</p>
+    `;
+    return;
+  }
+
+  productosRiesgosos.forEach((producto, index) => {
+    const estado = obtenerEstadoProducto(producto.vencimiento);
+
+    let nivel = "medio";
+    if (producto.puntaje >= 140) nivel = "alto";
+    if (producto.puntaje < 100) nivel = "bajo";
+
+    const card = document.createElement("article");
+    card.classList.add("item-riesgo", nivel);
+
+    card.innerHTML = `
+      <h4>${index + 1}. ${producto.nombre}</h4>
+      <p><strong>Estado:</strong> ${estado.texto}</p>
+      <p>📦 Stock: ${producto.stock}</p>
+      <p>💰 ${producto.valor.toLocaleString("es-AR", {
+        style: "currency",
+        currency: "ARS",
+        maximumFractionDigits: 0
+      })}</p>
+      <p>📅 ${formatearFecha(producto.vencimiento)}</p>
+      <span class="puntaje-riesgo">Riesgo ${Math.round(producto.puntaje)}</span>
+    `;
+
+    rankingRiesgo.appendChild(card);
+  });
 }
