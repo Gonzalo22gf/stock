@@ -187,26 +187,14 @@ function mostrarAuth() {
   seccionesApp.forEach((s) => s.classList.add("oculto"));
   panelAdminGlobal?.classList.add("oculto");
 
-  // Ocultar topbar y sidebar
   const topbar  = document.querySelector("#topbar");
   const sidebar = document.querySelector("#sidebar");
   if (topbar)  topbar.classList.add("oculto");
-  if (sidebar) {
-    sidebar.classList.add("oculto");
-    // Quitar margen del contenido
-    const mainContent = document.querySelector(".main-content");
-    if (mainContent) mainContent.style.marginLeft = "0";
-  }
+  if (sidebar) sidebar.classList.add("oculto");
 
-  // Limpiar sidebar
-  const sidebarNombreUsuario = document.querySelector("#sidebarNombreUsuario");
-  const sidebarRolUsuario    = document.querySelector("#sidebarRolUsuario");
-  const sidebarUser          = document.querySelector("#sidebarUser");
-  const badge                = document.querySelector("#navBadgeAlertas");
-
-  if (sidebarNombreUsuario) sidebarNombreUsuario.textContent = "—";
-  if (sidebarRolUsuario)    sidebarRolUsuario.textContent    = "—";
-  if (sidebarUser)          sidebarUser.style.display        = "none";
+  const sidebarUser = document.querySelector("#sidebarUser");
+  const badge       = document.querySelector("#navBadgeAlertas");
+  if (sidebarUser) sidebarUser.style.display = "none";
   if (badge) { badge.textContent = ""; badge.classList.remove("visible"); }
 
   formLogin?.reset();
@@ -227,18 +215,11 @@ function mostrarApp() {
   seccionUsuario.classList.remove("oculto");
   seccionesApp.forEach((s) => s.classList.remove("oculto"));
 
-  // Mostrar topbar y sidebar
   const topbar  = document.querySelector("#topbar");
   const sidebar = document.querySelector("#sidebar");
   if (topbar)  topbar.classList.remove("oculto");
-  if (sidebar) {
-    sidebar.classList.remove("oculto");
-    // Restaurar margen del contenido
-    const mainContent = document.querySelector(".main-content");
-    if (mainContent) mainContent.style.marginLeft = "";
-  }
+  if (sidebar) sidebar.classList.remove("oculto");
 
-  // Mostrar sidebar user y actualizar avatar
   const sidebarUser   = document.querySelector("#sidebarUser");
   const sidebarAvatar = document.querySelector("#sidebarAvatar");
   if (sidebarUser)   sidebarUser.style.display = "";
@@ -270,6 +251,7 @@ function iniciarTabsAdmin() {
       if (contenido) contenido.classList.add("activa");
 
       // Cargar contenido según tab
+      if (idTab === "sucursales")  cargarSucursalesAdmin();
       if (idTab === "comparativo") cargarComparativoSucursales();
       if (idTab === "usuarios")    cargarUsuariosAdmin();
     });
@@ -1168,13 +1150,13 @@ function mostrarAlertasVencimiento() {
 }
 
 function cambiarModoOscuro() {
-  document.body.classList.toggle("modo-oscuro");
-  localStorage.setItem("modoOscuro", JSON.stringify(document.body.classList.contains("modo-oscuro")));
+  document.body.classList.toggle("light");
+  localStorage.setItem("modoClaro", JSON.stringify(document.body.classList.contains("light")));
 }
 
 function aplicarModoGuardado() {
-  if (JSON.parse(localStorage.getItem("modoOscuro"))) {
-    document.body.classList.add("modo-oscuro");
+  if (JSON.parse(localStorage.getItem("modoClaro") || "false")) {
+    document.body.classList.add("light");
   }
 }
 
@@ -1540,7 +1522,7 @@ function actualizarPanelPremium(listaProductos) {
       <td>${obtenerNombreSucursalProducto(producto) || "Sin sucursal"}</td>
       <td class="${claseFecha}">${formatearFecha(producto.vencimiento)}</td>
       <td>${producto.stock}</td>
-      <td><span class="badge-prioridad ${prioridad}">🔔 ${prioridad === "alta" ? "Alta" : "Media"}</span></td>
+      <td><span class="badge badge-${prioridad === "alta" ? "red" : "orange"}">● ${prioridad === "alta" ? "Alta" : "Media"}</span></td>
     `;
     tablaUrgencias.appendChild(fila);
   });
@@ -1589,15 +1571,15 @@ function actualizarPanelPremium(listaProductos) {
     else if (index === 1) claseNum = "plata";
     else if (index === 2) claseNum = "bronce";
 
-    const card = document.createElement("article");
-    card.classList.add("item-riesgo", nivel);
+    const card = document.createElement("div");
+    card.classList.add("ranking-item");
     card.innerHTML = `
-      <div class="item-riesgo-num ${claseNum}">${index + 1}</div>
-      <div class="item-riesgo-info">
-        <div class="item-riesgo-nombre">${producto.nombre}</div>
-        <div class="item-riesgo-sub">Lote: ${producto.lote || "Sin lote"} · Vence: ${formatearFecha(producto.vencimiento)}</div>
+      <div class="rank-num ${claseNum}">${index + 1}</div>
+      <div class="rank-info">
+        <div class="rank-name">${producto.nombre}</div>
+        <div class="rank-sub">Lote: ${producto.lote || "Sin lote"} · Vence: ${formatearFecha(producto.vencimiento)}</div>
       </div>
-      <span class="puntaje-riesgo">${Math.round(producto.puntaje)}</span>
+      <span class="rank-score">${Math.round(producto.puntaje)}</span>
     `;
     rankingRiesgo.appendChild(card);
   });
@@ -1822,15 +1804,32 @@ async function cargarUsuariosAdmin() {
   const contenedor = document.querySelector("#tablaUsuariosAdmin");
   if (!contenedor) return;
 
+  // Mostrar loading
+  contenedor.innerHTML = `<p class="mensaje-vacio">⏳ Cargando...</p>`;
+
   try {
     const respuesta = await fetch(`${API_URL}/api/usuarios`, {
       headers: { Authorization: `Bearer ${token}` }
     });
+
+    if (respuesta.status === 404) {
+      // Endpoint no existe en el backend — mostrar gestión de sucursales como alternativa
+      contenedor.innerHTML = `
+        <div class="admin-aviso">
+          <p>⚠️ El endpoint <code>/api/usuarios</code> no está disponible en el backend.</p>
+          <p>Podés gestionar las sucursales desde la sección de abajo:</p>
+        </div>
+      `;
+      await cargarGestionSucursales(contenedor);
+      return;
+    }
+
     const data = await respuesta.json();
     if (!respuesta.ok) throw new Error(data.mensaje || "Error");
 
     if (data.length === 0) {
       contenedor.innerHTML = `<p class="mensaje-vacio">No hay usuarios registrados.</p>`;
+      await cargarGestionSucursales(contenedor);
       return;
     }
 
@@ -1839,12 +1838,8 @@ async function cargarUsuariosAdmin() {
         <table class="tabla-admin">
           <thead>
             <tr>
-              <th>Usuario</th>
-              <th>Email</th>
-              <th>Sucursal</th>
-              <th>Rol</th>
-              <th>Estado</th>
-              <th>Acciones</th>
+              <th>Usuario</th><th>Email</th><th>Sucursal</th>
+              <th>Rol</th><th>Estado</th><th>Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -1852,12 +1847,15 @@ async function cargarUsuariosAdmin() {
               <tr class="${u.activo === false ? "usuario-inactivo" : ""}">
                 <td><strong>${u.nombre}</strong></td>
                 <td>${u.email}</td>
-                <td>${u.sucursal?.nombre || "Sin sucursal"}</td>
                 <td>
-                  <select class="select-rol" data-id="${u._id}" onchange="cambiarRolUsuario('${u._id}', this.value)">
-                    <option value="admin"  ${u.rol === "admin"  ? "selected" : ""}>Admin</option>
-                    <option value="jefe"   ${u.rol === "jefe"   ? "selected" : ""}>Jefe</option>
-                    <option value="usuario"${u.rol === "usuario" ? "selected" : ""}>Usuario</option>
+                  <span>${u.sucursal?.nombre || "Sin sucursal"}</span>
+                  ${u.sucursal?._id ? `<button class="btn-rename-suc" onclick="editarSucursal('${u.sucursal._id}')">✏️</button>` : ""}
+                </td>
+                <td>
+                  <select class="select-rol" onchange="cambiarRolUsuario('${u._id}', this.value)">
+                    <option value="admin"   ${u.rol === "admin"   ? "selected" : ""}>Admin</option>
+                    <option value="jefe"    ${u.rol === "jefe"    ? "selected" : ""}>Jefe</option>
+                    <option value="usuario" ${u.rol === "usuario" ? "selected" : ""}>Usuario</option>
                   </select>
                 </td>
                 <td>
@@ -1865,8 +1863,8 @@ async function cargarUsuariosAdmin() {
                     ${u.activo === false ? "Inactivo" : "Activo"}
                   </span>
                 </td>
-                <td class="acciones-usuario">
-                  <button class="btn-toggle-usuario" onclick="toggleActivarUsuario('${u._id}', ${u.activo !== false})" title="${u.activo === false ? "Activar" : "Desactivar"}">
+                <td>
+                  <button class="btn-toggle-usuario" onclick="toggleActivarUsuario('${u._id}', ${u.activo !== false})">
                     ${u.activo === false ? "✅ Activar" : "🚫 Desactivar"}
                   </button>
                 </td>
@@ -1876,9 +1874,78 @@ async function cargarUsuariosAdmin() {
         </table>
       </div>
     `;
+
+    // Agregar gestión de sucursales debajo de la tabla de usuarios
+    const divSuc = document.createElement("div");
+    divSuc.style.marginTop = "20px";
+    contenedor.appendChild(divSuc);
+    await cargarGestionSucursales(divSuc);
+
   } catch (error) {
-    contenedor.innerHTML = `<p class="mensaje-vacio">No se pudieron cargar los usuarios. (Requiere endpoint /api/usuarios en el backend)</p>`;
+    contenedor.innerHTML = `<p class="mensaje-vacio">Error al cargar usuarios.</p>`;
+    await cargarGestionSucursales(contenedor);
   }
+}
+
+// ========================= //
+// GESTIÓN DE SUCURSALES     //
+// (funciona sin /api/usuarios)
+// ========================= //
+
+async function cargarGestionSucursales(contenedor) {
+  if (!contenedor) return;
+
+  // Usar el array de sucursales ya cargado
+  if (!sucursales || sucursales.length === 0) {
+    try {
+      const respuesta = await fetch(`${API_URL}/api/sucursales`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await respuesta.json();
+      if (respuesta.ok) sucursales = data;
+    } catch(e) {
+      // ignorar
+    }
+  }
+
+  if (!sucursales || sucursales.length === 0) {
+    const div = document.createElement("div");
+    div.innerHTML = `<p class="mensaje-vacio">No hay sucursales registradas.</p>`;
+    contenedor.appendChild(div);
+    return;
+  }
+
+  const div = document.createElement("div");
+  div.innerHTML = `
+    <h3 style="font-size:.85rem;font-weight:700;color:var(--text-1);margin-bottom:12px;padding-top:16px;border-top:1px solid var(--border)">
+      🏪 Gestión de sucursales
+    </h3>
+    <div class="sucursales-grid">
+      ${sucursales.map((s) => `
+        <div class="sucursal-card">
+          <div class="sucursal-card-header">
+            <div class="sucursal-num">${s.numero || s.nro || "—"}</div>
+            <div class="sucursal-info">
+              <span class="sucursal-nombre">${s.nombre}</span>
+              <small class="sucursal-dir">${s.direccion || "Sin dirección"}</small>
+            </div>
+            <button
+              class="btn-editar-sucursal"
+              onclick="editarSucursal('${s._id}')"
+              title="Editar sucursal"
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+              Editar
+            </button>
+          </div>
+        </div>
+      `).join("")}
+    </div>
+  `;
+  contenedor.appendChild(div);
 }
 
 async function cambiarRolUsuario(idUsuario, nuevoRol) {
@@ -1923,6 +1990,219 @@ async function toggleActivarUsuario(idUsuario, estaActivo) {
 
     Swal.fire({ icon: "success", title: `Usuario ${accion === "activar" ? "activado" : "desactivado"}`, timer: 1400, showConfirmButton: false });
     await cargarUsuariosAdmin();
+  } catch (error) {
+    Swal.fire({ icon: "error", title: "Error", text: error.message });
+  }
+}
+
+async function cargarSucursalesAdmin() {
+  const contenedor = document.querySelector("#tablaSucursalesAdmin");
+  if (!contenedor) return;
+
+  contenedor.innerHTML = `<p style="color:var(--text-4);font-size:.82rem;padding:12px 0">Cargando sucursales...</p>`;
+
+  try {
+    // Intentar endpoint dedicado primero, sino usar el de resumen
+    let sucursalesData = sucursales;
+
+    if (!sucursalesData || sucursalesData.length === 0) {
+      const resp = await fetch(`${API_URL}/api/sucursales`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await resp.json();
+      if (resp.ok) sucursalesData = data;
+    }
+
+    // Traer también resumen para tener stats
+    let resumenData = [];
+    try {
+      const respR = await fetch(`${API_URL}/api/sucursales/resumen`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const dataR = await respR.json();
+      if (respR.ok) resumenData = dataR;
+    } catch(e) {}
+
+    if (!sucursalesData || sucursalesData.length === 0) {
+      contenedor.innerHTML = `<p class="mensaje-vacio">No hay sucursales registradas.</p>`;
+      return;
+    }
+
+    contenedor.innerHTML = `
+      <div class="tabla-usuarios-wrap">
+        <table class="tabla-admin">
+          <thead>
+            <tr>
+              <th>N°</th>
+              <th>Nombre</th>
+              <th>Dirección</th>
+              <th>Productos</th>
+              <th>Vencidos</th>
+              <th>Stock crítico</th>
+              <th>Valor inventario</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${sucursalesData.map((s) => {
+              const resumen = resumenData.find(r => r.sucursal?._id === s._id) || {};
+              return `
+                <tr>
+                  <td><strong>${s.numero || s.nro || "—"}</strong></td>
+                  <td><strong>${s.nombre}</strong></td>
+                  <td>${s.direccion || '<span style="color:var(--text-4)">Sin dirección</span>'}</td>
+                  <td>${resumen.totalProductos ?? "—"}</td>
+                  <td style="color:${(resumen.vencidos || 0) > 0 ? "var(--red)" : "var(--text-3)"}">
+                    ${resumen.vencidos ?? "—"}
+                  </td>
+                  <td style="color:${(resumen.stockCritico || 0) > 0 ? "var(--orange)" : "var(--text-3)"}">
+                    ${resumen.stockCritico ?? "—"}
+                  </td>
+                  <td>${resumen.valorInventario != null
+                    ? resumen.valorInventario.toLocaleString("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 })
+                    : "—"
+                  }</td>
+                  <td>
+                    <button
+                      class="btn-edit-suc"
+                      onclick="editarSucursal('${s._id}')"
+                      title="Editar sucursal"
+                    >
+                      ✏️ Editar
+                    </button>
+                  </td>
+                </tr>
+              `;
+            }).join("")}
+          </tbody>
+        </table>
+      </div>
+      <p style="font-size:.7rem;color:var(--text-4);margin-top:10px;padding:8px 12px;background:rgba(99,102,241,.08);border-radius:8px;border-left:3px solid var(--brand)">
+        💡 Hacé clic en <strong>✏️ Editar</strong> para cambiar el nombre, número o dirección de una sucursal.
+      </p>
+    `;
+  } catch (error) {
+    contenedor.innerHTML = `
+      <div style="text-align:center;padding:24px">
+        <p style="color:var(--text-4);font-size:.85rem;margin-bottom:8px">No se pudieron cargar las sucursales.</p>
+        <p style="color:var(--text-4);font-size:.75rem">Requiere endpoint <code style="background:var(--bg-3);padding:2px 6px;border-radius:4px">/api/sucursales</code> en el backend.</p>
+      </div>
+    `;
+  }
+}
+
+async function renombrarSucursal(idSucursal, nombreActual) {
+  await editarSucursal(idSucursal);
+}
+
+async function editarSucursal(idSucursal) {
+  // Buscar datos actuales de la sucursal
+  const sucursal = sucursales.find(s => s._id === idSucursal);
+  if (!sucursal) {
+    Swal.fire({ icon: "error", title: "Error", text: "Sucursal no encontrada." });
+    return;
+  }
+
+  const resultado = await Swal.fire({
+    title: "✏️ Editar sucursal",
+    html: `
+      <div style="text-align:left;padding:0 4px">
+
+        <label style="display:block;font-size:.75rem;font-weight:700;color:#94a3b8;margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em">
+          Número de sucursal
+        </label>
+        <input
+          id="editSucNumero"
+          type="number"
+          class="swal2-input"
+          placeholder="Ej: 1, 329, 42..."
+          value="${sucursal.numero || sucursal.nro || ""}"
+          min="1"
+          style="width:100%;margin:0 0 14px"
+        >
+
+        <label style="display:block;font-size:.75rem;font-weight:700;color:#94a3b8;margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em">
+          Nombre de la sucursal
+        </label>
+        <input
+          id="editSucNombre"
+          type="text"
+          class="swal2-input"
+          placeholder="Ej: Sucursal Norte"
+          value="${sucursal.nombre || ""}"
+          style="width:100%;margin:0 0 14px"
+        >
+
+        <label style="display:block;font-size:.75rem;font-weight:700;color:#94a3b8;margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em">
+          Dirección <span style="font-weight:400;text-transform:none">(opcional)</span>
+        </label>
+        <input
+          id="editSucDireccion"
+          type="text"
+          class="swal2-input"
+          placeholder="Av. Corrientes 1234"
+          value="${sucursal.direccion || ""}"
+          style="width:100%;margin:0"
+        >
+
+        <p style="font-size:.7rem;color:#64748b;margin-top:12px;padding:8px 10px;background:rgba(99,102,241,.08);border-radius:7px;border-left:3px solid #6366f1">
+          ⚠️ Cambiar el número de sucursal actualiza el identificador visible en todos los productos y reportes.
+        </p>
+      </div>
+    `,
+    showCancelButton: true,
+    confirmButtonText: "Guardar cambios",
+    cancelButtonText: "Cancelar",
+    width: 480,
+    preConfirm: () => {
+      const nombre    = document.querySelector("#editSucNombre").value.trim();
+      const numero    = document.querySelector("#editSucNumero").value.trim();
+      const direccion = document.querySelector("#editSucDireccion").value.trim();
+
+      if (!nombre) {
+        Swal.showValidationMessage("El nombre es obligatorio");
+        return false;
+      }
+
+      return { nombre, numero: numero ? Number(numero) : undefined, direccion };
+    }
+  });
+
+  if (!resultado.isConfirmed) return;
+
+  try {
+    const respuesta = await fetch(`${API_URL}/api/sucursales/${idSucursal}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify(resultado.value)
+    });
+    const data = await respuesta.json();
+    if (!respuesta.ok) throw new Error(data.mensaje || "Error al editar sucursal");
+
+    // Actualizar localmente
+    const idx = sucursales.findIndex(s => s._id === idSucursal);
+    if (idx >= 0) {
+      sucursales[idx].nombre    = resultado.value.nombre;
+      sucursales[idx].direccion = resultado.value.direccion;
+      if (resultado.value.numero) sucursales[idx].numero = resultado.value.numero;
+    }
+
+    const nroTexto = resultado.value.numero ? ` (N° ${resultado.value.numero})` : "";
+    Swal.fire({
+      icon: "success",
+      title: "Sucursal actualizada",
+      text: `"${resultado.value.nombre}"${nroTexto} guardada correctamente.`,
+      timer: 2000,
+      showConfirmButton: false
+    });
+
+    // Recargar todo
+    await cargarSucursalesAdmin();
+    await cargarUsuariosAdmin();
+    await cargarComparativoSucursales();
+    await cargarResumenSucursales();
+    crearSelectorSucursales();
+
   } catch (error) {
     Swal.fire({ icon: "error", title: "Error", text: error.message });
   }
