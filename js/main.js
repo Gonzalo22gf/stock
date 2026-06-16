@@ -1135,17 +1135,18 @@ async function agregarProducto(e) {
 
 // Delegación robusta para botones de productos
 function manejarClickProductos(e) {
-  // Ignorar clicks dentro del modal FAB
+  // Ignorar clicks dentro del modal FAB o Swal
   if (e.target.closest("#fabModalOverlay")) return;
+  if (e.target.closest(".swal2-container")) return;
 
   const btn = e.target.closest(".btn-editar, .btn-eliminar, .btn-transferir");
   if (!btn) return;
 
+  // Si el botón ya tiene onclick propio (transferir), dejar que se ejecute solo
+  if (btn.getAttribute("onclick")) return;
+
   const id = btn.dataset.id;
-  if (!id || id === "undefined") {
-    console.warn("StockAlert: botón sin data-id", btn);
-    return;
-  }
+  if (!id || id === "undefined") return;
 
   if (btn.classList.contains("btn-eliminar")) {
     e.stopPropagation();
@@ -2421,7 +2422,7 @@ async function cargarSucursalesAdmin() {
               const resumen = resumenData.find(r => r.sucursal?._id === s._id) || {};
               return `
                 <tr>
-                  <td><strong>${s.numero || s.nro || "—"}</strong></td>
+                  <td><strong>${s.numero || s.nro || s.num || (sucursalesData.indexOf(s) + 1)}</strong></td>
                   <td><strong>${s.nombre}</strong></td>
                   <td>${s.direccion || '<span style="color:var(--text-4)">Sin dirección</span>'}</td>
                   <td>${resumen.totalProductos ?? "—"}</td>
@@ -2667,18 +2668,38 @@ async function transferirProducto(idProducto) {
   if (!resultado.isConfirmed) return;
 
   try {
+    // Armar el body completo para no romper validaciones del backend
+    const bodyTransfer = {
+      nombre:       producto.nombre,
+      categoria:    producto.categoria,
+      precio:       producto.precio,
+      stock:        producto.stock,
+      vencimiento:  producto.vencimiento,
+      codigoBarras: producto.codigoBarras || "",
+      lote:         producto.lote || "",
+      sucursal:     resultado.value,
+      lotes: (producto.lotes && producto.lotes.length > 0)
+        ? producto.lotes
+        : [{ numero: producto.lote || "", stock: producto.stock, vencimiento: producto.vencimiento }]
+    };
+
     const respuesta = await fetch(`${API_URL}/api/productos/${idProducto}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ sucursal: resultado.value })
+      body: JSON.stringify(bodyTransfer)
     });
     const data = await respuesta.json();
     if (!respuesta.ok) throw new Error(data.mensaje || "Error al transferir");
 
-    productos = productos.map((p) => p.id === idProducto ? normalizarProducto(data) : p);
+    // Recargar productos completos (sin filtro de sucursal temporalmente)
+    const sucursalAnterior = sucursalSeleccionada;
+    sucursalSeleccionada = "";
+    await cargarProductosAPI();
+    sucursalSeleccionada = sucursalAnterior;
     aplicarFiltros();
     await cargarResumenSucursales();
     await cargarComparativoSucursales();
+    await cargarMovimientosAPI();
 
     const sucursalNombre = sucursales.find((s) => s._id === resultado.value)?.nombre || "otra sucursal";
     Swal.fire({ icon: "success", title: "Producto transferido", text: `Movido a ${sucursalNombre}.`, timer: 1800, showConfirmButton: false });
