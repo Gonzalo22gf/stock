@@ -897,7 +897,9 @@ function renderizarProductosPaginados() {
       const card = document.createElement("article");
       card.classList.add("card-producto", estado.clase, estadoStock.clase, claseBorde);
 
-      const pid = producto.id || producto._id;
+      const pid = String(producto.id || producto._id || "");
+
+      // Contenido de la card sin botones
       card.innerHTML = `
         <h3>${producto.nombre}</h3>
         ${usuarioActivo?.rol === "admin" ? `<p><strong>Sucursal:</strong> ${nombreSucursalProducto}</p>` : ""}
@@ -913,18 +915,37 @@ function renderizarProductosPaginados() {
         <p><strong>Actualizado:</strong> ${fechaActualizacion}</p>
         <span class="estado ${estado.clase}">${estado.texto}</span>
         <span class="estado-stock ${estadoStock.clase}">${estadoStock.texto}</span>
-        <div class="botones">
-          <button class="btn-accion btn-editar"   data-pid="${pid}" type="button">Editar</button>
-          <button class="btn-accion btn-eliminar" data-pid="${pid}" type="button">Eliminar</button>
-          ${usuarioActivo?.rol === "admin" ? `<button class="btn-accion btn-transferir" data-pid="${pid}" type="button">↗</button>` : ""}
-        </div>
       `;
 
-      // Agregar listeners directamente al elemento creado
-      card.querySelector(".btn-editar")?.addEventListener("click", (e) => { e.stopPropagation(); editarProducto(pid); });
-      card.querySelector(".btn-eliminar")?.addEventListener("click", (e) => { e.stopPropagation(); eliminarProducto(pid); });
-      card.querySelector(".btn-transferir")?.addEventListener("click", (e) => { e.stopPropagation(); transferirProducto(pid); });
+      // Crear botones con createElement para garantizar que los listeners funcionen
+      const divBotones = document.createElement("div");
+      divBotones.className = "botones";
 
+      const btnEdit = document.createElement("button");
+      btnEdit.className = "btn-editar";
+      btnEdit.textContent = "Editar";
+      btnEdit.type = "button";
+      btnEdit.setAttribute("onclick", "editarProducto('" + pid + "')");
+      divBotones.appendChild(btnEdit);
+
+      const btnDel = document.createElement("button");
+      btnDel.className = "btn-eliminar";
+      btnDel.textContent = "Eliminar";
+      btnDel.type = "button";
+      btnDel.setAttribute("onclick", "eliminarProducto('" + pid + "')");
+      divBotones.appendChild(btnDel);
+
+      if (usuarioActivo?.rol === "admin") {
+        const btnTrans = document.createElement("button");
+        btnTrans.className = "btn-transferir";
+        btnTrans.textContent = "↗";
+        btnTrans.type = "button";
+        btnTrans.title = "Transferir a otra sucursal";
+        btnTrans.setAttribute("onclick", "transferirProducto('" + pid + "')");
+        divBotones.appendChild(btnTrans);
+      }
+
+      card.appendChild(divBotones);
       contenedorProductos.appendChild(card);
     });
   }

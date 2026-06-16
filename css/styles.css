@@ -941,6 +941,7 @@ body.light .btn-cerrar { color:var(--red); }
   inset:0; opacity:0;
   background:linear-gradient(135deg,rgba(255,255,255,.03),transparent);
   transition:opacity .15s;
+  pointer-events:none;
 }
 .card-producto:hover { transform:translateY(-1px); box-shadow:var(--shadow-md); }
 .card-producto:hover::after { opacity:1; }
@@ -1094,7 +1095,27 @@ body.light .card-producto.ok         { background: rgba(16,185,129,.12) !importa
   gap:8px; margin-bottom:10px; align-items:center;
 }
 .mov-toolbar input  { flex:1; min-width:180px; height:36px; }
-.mov-toolbar select { min-width:140px; height:36px; }
+.mov-toolbar select {
+  min-width: 140px;
+  height: 36px;
+  padding: 0 10px;
+  background: var(--bg-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-1);
+  font-size: .8rem;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color .15s, box-shadow .15s;
+  appearance: auto;
+}
+.mov-toolbar select:focus {
+  outline: none;
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px var(--brand-glow);
+}
+.mov-toolbar select:hover { border-color: var(--border-2); }
 .mov-toolbar .btn-success { height:36px; white-space:nowrap; }
 
 .movimientos { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:8px; }
@@ -1665,301 +1686,137 @@ body.light .swal2-cancel { color:var(--red) !important; }
 /* ========================= */
 
 /* Ranking compacto en móvil */
+
+/* ================================================
+   RESPONSIVE CONSOLIDADO - ÚNICO BLOQUE LIMPIO
+   ================================================ */
+
 @media (max-width: 700px) {
-  /* Two col grid en una columna */
-  .two-col-grid { grid-template-columns: 1fr !important; }
 
-  /* Ranking list más compacto */
-  .ranking-item { padding: 8px 10px; }
-  .rank-name    { font-size: .8rem; }
-  .rank-sub     { font-size: .64rem; }
-  .rank-score   { font-size: .64rem; padding: 2px 6px; }
+  /* Layout */
+  .two-col-grid    { display: flex !important; flex-direction: column !important; gap: 10px !important; }
+  .charts-grid     { grid-template-columns: 1fr !important; }
+  .mov-stats       { grid-template-columns: 1fr 1fr !important; }
 
-  /* Panel ranking completo visible sin scroll */
-  .panel-ranking { max-height: none; }
-  .ranking-list  { max-height: none; overflow: visible; }
+  /* KPIs y stats en 2 columnas */
+  .kpi-row   { grid-template-columns: 1fr 1fr !important; gap: 8px !important; }
+  .stats-row { grid-template-columns: 1fr 1fr !important; gap: 7px !important; }
 
-  /* Tabla urgentes → cards en móvil */
-  .table-wrap { border: none; border-radius: 0; box-shadow: none; }
+  /* Gráficos más compactos */
+  .chart-wrap { height: 160px !important; }
 
-  .data-table,
-  .data-table thead,
-  .data-table tbody,
-  .data-table th,
-  .data-table td,
-  .data-table tr { display: block; width: 100%; }
+  /* Cards */
+  .card        { padding: 12px !important; }
+  .card-header { margin-bottom: 8px !important; }
 
-  .data-table thead { display: none; }
-
+  /* Tabla urgentes → cards */
+  .table-wrap    { border: none !important; }
+  .data-table, .data-table thead, .data-table tbody,
+  .data-table th, .data-table td, .data-table tr { display: block !important; width: 100% !important; }
+  .data-table thead { display: none !important; }
   .data-table tbody tr {
     background: var(--bg-3);
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
     margin-bottom: 8px;
     padding: 10px 12px;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 4px 12px;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 3px 10px;
   }
+  .data-table td { padding: 2px 0 !important; font-size: .76rem !important; border: none !important; white-space: normal !important; }
+  .data-table td:nth-child(1) { grid-column: 1/-1 !important; font-size: .86rem !important; font-weight: 800 !important; color: var(--text-1) !important; padding-bottom: 5px !important; border-bottom: 1px solid var(--border) !important; margin-bottom: 2px !important; }
+  .data-table td:nth-child(6) { grid-column: 1/-1 !important; }
+  .data-table td:nth-child(2)::before { content: "Lote: ";     font-weight: 700; color: var(--text-4); font-size: .65rem; }
+  .data-table td:nth-child(3)::before { content: "Sucursal: "; font-weight: 700; color: var(--text-4); font-size: .65rem; }
+  .data-table td:nth-child(4)::before { content: "Vence: ";    font-weight: 700; color: var(--text-4); font-size: .65rem; }
+  .data-table td:nth-child(5)::before { content: "Stock: ";    font-weight: 700; color: var(--text-4); font-size: .65rem; }
 
-  .data-table td {
-    padding: 2px 0;
-    font-size: .76rem;
-    border: none;
-    white-space: normal;
-  }
-
-  .data-table td:nth-child(1) {
-    grid-column: 1 / -1;
-    font-size: .86rem;
-    font-weight: 800;
-    color: var(--text-1);
-    margin-bottom: 4px;
-    padding-bottom: 6px;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .data-table td:nth-child(6) { grid-column: 1 / -1; margin-top: 4px; }
-
-  .data-table td:nth-child(2)::before { content: "🏷 Lote: ";     color: var(--text-4); font-weight: 600; }
-  .data-table td:nth-child(3)::before { content: "🏪 Sucursal: "; color: var(--text-4); font-weight: 600; }
-  .data-table td:nth-child(4)::before { content: "📅 Vence: ";    color: var(--text-4); font-weight: 600; }
-  .data-table td:nth-child(5)::before { content: "📦 Stock: ";    color: var(--text-4); font-weight: 600; }
-
-  /* Tabla admin usuarios → cards en móvil */
-  .tabla-admin,
-  .tabla-admin thead,
-  .tabla-admin tbody,
-  .tabla-admin th,
-  .tabla-admin td,
-  .tabla-admin tr { display: block; width: 100%; }
-
-  .tabla-admin thead { display: none; }
-  .tabla-usuarios-wrap { border: none; }
-
+  /* Tabla admin usuarios → lista */
+  .tabla-admin, .tabla-admin thead, .tabla-admin tbody,
+  .tabla-admin th, .tabla-admin td, .tabla-admin tr { display: block !important; }
+  .tabla-admin thead      { display: none !important; }
+  .tabla-usuarios-wrap    { border: none !important; }
   .tabla-admin tbody tr {
     background: var(--bg-3);
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
     margin-bottom: 10px;
     padding: 12px;
-    display: flex;
+    display: flex !important;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
   }
-
-  .tabla-admin td { padding: 0; border: none; font-size: .8rem; }
-
-  .tabla-admin td:nth-child(1)::before { content: "👤 "; }
-  .tabla-admin td:nth-child(2)::before { content: "✉️ "; color: var(--text-4); }
-  .tabla-admin td:nth-child(3)::before { content: "🏪 "; color: var(--text-4); }
-
-  .tabla-admin td:nth-child(4),
-  .tabla-admin td:nth-child(5),
-  .tabla-admin td:nth-child(6) {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  /* Sucursales grid 1 col en móvil */
-  .sucursales-grid { grid-template-columns: 1fr; }
-}
-
-/* ========================= */
-/* BUSCADOR SUCURSALES       */
-/* ========================= */
-
-.buscador-sucursales-wrap {
-  margin-bottom: 14px;
-}
-
-.buscador-sucursales {
-  width: 100%;
-  height: 36px;
-  padding: 0 12px 0 34px;
-  background: var(--bg-3);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  color: var(--text-1);
-  font-size: .82rem;
-  transition: border-color .15s, box-shadow .15s;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: 10px center;
-}
-
-.buscador-sucursales:focus {
-  outline: none;
-  border-color: var(--brand);
-  box-shadow: 0 0 0 3px var(--brand-glow);
-}
-
-.sucursal-card.oculta { display: none; }
-
-/* ========================= */
-/* MÓVIL - DASHBOARD FIXES   */
-/* ========================= */
-
-@media (max-width: 700px) {
-
-  /* Acciones urgentes - cards más compactas */
-  .data-table tbody tr {
-    padding: 10px 12px;
-    gap: 3px 8px;
-  }
-
-  .data-table td:nth-child(1) {
-    font-size: .88rem;
-    font-weight: 800;
-    padding-bottom: 6px;
-    margin-bottom: 2px;
-  }
-
-  .data-table td:nth-child(2),
-  .data-table td:nth-child(3),
-  .data-table td:nth-child(4),
-  .data-table td:nth-child(5) {
-    font-size: .74rem;
-  }
-
-  .data-table td:nth-child(2)::before { content: "Lote: ";     font-weight: 700; color: var(--text-4); font-size: .65rem; }
-  .data-table td:nth-child(3)::before { content: "Sucursal: "; font-weight: 700; color: var(--text-4); font-size: .65rem; }
-  .data-table td:nth-child(4)::before { content: "Vence: ";    font-weight: 700; color: var(--text-4); font-size: .65rem; }
-  .data-table td:nth-child(5)::before { content: "Stock: ";    font-weight: 700; color: var(--text-4); font-size: .65rem; }
+  .tabla-admin td { padding: 0 !important; border: none !important; font-size: .8rem !important; }
 
   /* Ranking compacto */
-  .ranking-list { gap: 5px; }
+  .ranking-item  { padding: 8px 10px; }
+  .rank-name     { font-size: .8rem; }
+  .rank-sub      { font-size: .64rem; }
+  .rank-score    { font-size: .64rem; padding: 2px 6px; }
 
-  .ranking-item {
-    padding: 9px 11px;
-    gap: 9px;
-  }
+  /* Productos 1 columna en móvil */
+  .productos { grid-template-columns: 1fr !important; }
 
-  .rank-num {
-    width: 26px;
-    height: 26px;
-    font-size: .7rem;
-    flex-shrink: 0;
-  }
+  /* Movimientos 1 columna */
+  .movimientos { grid-template-columns: 1fr !important; }
 
-  .rank-name {
-    font-size: .82rem;
-    font-weight: 700;
-  }
+  /* Filtros en columna */
+  .filtros { flex-direction: column !important; }
+  .filtros input, .filtros select { min-width: unset !important; width: 100% !important; }
 
-  .rank-sub {
-    font-size: .66rem;
-    color: var(--text-4);
-  }
+  /* Toolbar movimientos */
+  .mov-toolbar { flex-direction: column !important; }
+  .mov-toolbar input,
+  .mov-toolbar select,
+  .mov-toolbar .btn-success,
+  .mov-toolbar .btn-ghost { width: 100% !important; }
 
-  .rank-score {
-    font-size: .66rem;
-    padding: 2px 7px;
-    flex-shrink: 0;
-  }
+  /* Filtro fechas móvil */
+  .mov-fecha-toolbar { flex-direction: column !important; align-items: flex-start !important; }
+  .mov-fecha-rango   { margin-left: 0 !important; width: 100% !important; flex-wrap: wrap !important; }
+  .mov-fecha-rango input[type="date"] { flex: 1 !important; min-width: 130px; }
 
-  /* Panel ranking - sin altura máxima */
-  .panel-ranking,
-  .ranking-list {
-    max-height: none !important;
-    overflow: visible !important;
-  }
+  /* Sucursales 1 col */
+  .sucursales-grid  { grid-template-columns: 1fr !important; }
+  .comparativo-grid { grid-template-columns: 1fr !important; }
 
-  /* Two col en una columna */
-  .two-col-grid {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 12px !important;
-  }
+  /* Topbar compacto */
+  .topbar-chip { display: none !important; }
+  .topbar-search-btn span { display: none !important; }
+  .topbar-user-pill div  { display: none !important; }
 
-  /* Cards del dashboard más compactas */
-  .card { padding: 14px; }
-  .card-header { margin-bottom: 10px; }
-  .card-header h2 { font-size: .85rem; }
+  /* Form producto en 2 cols */
+  .form-producto { grid-template-columns: 1fr 1fr !important; }
+  #codigoBarras      { grid-column: 1 !important; }
+  .btn-scan          { grid-column: 2 !important; }
+  #nombre            { grid-column: 1 / -1 !important; }
+  #categoria         { grid-column: 1 !important; }
+  #precio            { grid-column: 2 !important; }
+  .lote-numero       { grid-column: 1 !important; }
+  .lote-stock        { grid-column: 2 !important; }
+  .lote-vencimiento  { grid-column: 1 / -1 !important; }
+  #btnAgregarLote    { grid-column: 1 !important; }
+  #formProducto > button[type="submit"] { grid-column: 2 !important; }
+
+  /* FAB no tape contenido */
+  .fab-scanner { bottom: 16px !important; right: 16px !important; width: 50px !important; height: 50px !important; }
+
+  /* Page content más compacto */
+  .page-content { padding: 10px 12px !important; gap: 10px !important; }
+}
+
+@media (max-width: 400px) {
+  .kpi-row   { grid-template-columns: 1fr !important; }
+  .stats-row { grid-template-columns: 1fr 1fr !important; }
+  .kpi-num   { font-size: 1.6rem !important; }
+  .mov-stats { grid-template-columns: 1fr !important; }
+  .mov-fecha-chips { flex-wrap: wrap !important; }
+  .fecha-chip { font-size: .68rem !important; padding: 3px 9px !important; }
 }
 
 /* ========================= */
-/* FILTRO FECHAS HISTORIAL   */
-/* ========================= */
-
-.mov-fecha-toolbar {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-bottom: 14px;
-  padding: 10px 14px;
-  background: var(--bg-3);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-}
-
-.mov-fecha-chips {
-  display: flex;
-  gap: 5px;
-  flex-wrap: wrap;
-}
-
-.fecha-chip {
-  padding: 4px 12px;
-  border-radius: 999px;
-  font-size: .74rem;
-  font-weight: 600;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  color: var(--text-3);
-  cursor: pointer;
-  transition: all .15s;
-}
-
-.fecha-chip:hover { border-color: var(--brand); color: var(--brand-light); }
-
-.fecha-chip.activa {
-  background: var(--brand);
-  border-color: var(--brand);
-  color: white;
-}
-
-.mov-fecha-rango {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-left: auto;
-  flex-wrap: wrap;
-}
-
-.mov-fecha-rango label {
-  font-size: .72rem;
-  font-weight: 600;
-  color: var(--text-4);
-}
-
-.mov-fecha-rango input[type="date"] {
-  height: 32px;
-  padding: 0 8px;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-xs);
-  color: var(--text-1);
-  font-size: .76rem;
-  font-family: inherit;
-  cursor: pointer;
-}
-
-.mov-fecha-rango input[type="date"]:focus {
-  outline: none;
-  border-color: var(--brand);
-}
-
-@media (max-width: 700px) {
-  .mov-fecha-toolbar { flex-direction: column; align-items: flex-start; }
-  .mov-fecha-rango   { margin-left: 0; width: 100%; }
-  .mov-fecha-rango input[type="date"] { flex: 1; }
-}
-
-/* ========================= */
-/* BOTÓN FLOTANTE CÁMARA     */
+/* BOTÓN FAB FLOTANTE        */
 /* ========================= */
 
 .fab-scanner {
@@ -1971,7 +1828,7 @@ body.light .swal2-cancel { color:var(--red) !important; }
   border-radius: 50%;
   background: linear-gradient(135deg, var(--brand), var(--brand-dark));
   color: white;
-  display: none; /* solo visible cuando hay sesión */
+  display: none;
   align-items: center;
   justify-content: center;
   box-shadow: 0 4px 20px rgba(99,102,241,.5), 0 2px 8px rgba(0,0,0,.3);
@@ -1982,38 +1839,10 @@ body.light .swal2-cancel { color:var(--red) !important; }
 }
 
 .fab-scanner.visible { display: flex; }
+.fab-scanner:hover   { transform: scale(1.08) translateY(-2px); box-shadow: 0 8px 28px rgba(99,102,241,.6); }
+.fab-scanner:active  { transform: scale(.96); }
+.fab-scanner svg     { width: 24px; height: 24px; }
 
-.fab-scanner:hover {
-  transform: scale(1.08) translateY(-2px);
-  box-shadow: 0 8px 28px rgba(99,102,241,.6), 0 4px 12px rgba(0,0,0,.3);
-}
-
-.fab-scanner:active { transform: scale(.96); }
-
-.fab-scanner svg { width: 24px; height: 24px; }
-
-/* Tooltip */
-.fab-scanner::before {
-  content: "Escanear EAN";
-  position: absolute;
-  right: 64px;
-  background: var(--bg-2);
-  color: var(--text-1);
-  font-size: .72rem;
-  font-weight: 700;
-  padding: 5px 10px;
-  border-radius: 7px;
-  white-space: nowrap;
-  border: 1px solid var(--border);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity .2s;
-  box-shadow: var(--shadow);
-}
-
-.fab-scanner:hover::before { opacity: 1; }
-
-/* Pulso animado */
 .fab-scanner::after {
   content: '';
   position: absolute;
@@ -2030,7 +1859,10 @@ body.light .swal2-cancel { color:var(--red) !important; }
   100% { transform: scale(1.3); opacity: 0; }
 }
 
-/* Modal scanner flotante */
+/* ========================= */
+/* MODAL FAB SCANNER         */
+/* ========================= */
+
 .fab-modal-overlay {
   position: fixed;
   inset: 0;
@@ -2096,10 +1928,7 @@ body.light .swal2-cancel { color:var(--red) !important; }
   min-height: 220px;
 }
 
-#fabLectorCodigo video {
-  width: 100% !important;
-  object-fit: cover;
-}
+#fabLectorCodigo video { width: 100% !important; object-fit: cover; }
 
 .fab-modal-campos {
   margin-top: 14px;
@@ -2149,7 +1978,7 @@ body.light .swal2-cancel { color:var(--red) !important; }
   font-weight: 700;
 }
 
-.fab-ean-display span { flex:1; }
+.fab-ean-display span { flex: 1; }
 
 .fab-btn-guardar {
   width: 100%;
@@ -2165,7 +1994,8 @@ body.light .swal2-cancel { color:var(--red) !important; }
 }
 .fab-btn-guardar:hover { filter: brightness(1.08); }
 
-@media (min-width: 900px) {
+/* FAB desktop */
+@media (min-width: 901px) {
   .fab-scanner { bottom: 32px; right: 32px; }
   .fab-modal {
     border-radius: var(--radius);
@@ -2173,4 +2003,288 @@ body.light .swal2-cancel { color:var(--red) !important; }
     max-width: 420px;
   }
   .fab-modal-overlay { align-items: center; }
+}
+
+/* ========================= */
+/* FILTRO FECHAS HISTORIAL   */
+/* ========================= */
+
+.mov-fecha-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+  padding: 10px 14px;
+  background: var(--bg-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.mov-fecha-chips {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.fecha-chip {
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: .74rem;
+  font-weight: 600;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text-3);
+  cursor: pointer;
+  transition: all .15s;
+}
+
+.fecha-chip:hover  { border-color: var(--brand); color: var(--brand-light); }
+.fecha-chip.activa { background: var(--brand); border-color: var(--brand); color: white; }
+
+.mov-fecha-rango {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+
+.mov-fecha-rango label {
+  font-size: .72rem;
+  font-weight: 600;
+  color: var(--text-4);
+}
+
+.mov-fecha-rango input[type="date"] {
+  height: 32px;
+  padding: 0 8px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  color: var(--text-1);
+  font-size: .76rem;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.mov-fecha-rango input[type="date"]:focus {
+  outline: none;
+  border-color: var(--brand);
+}
+
+/* ========================= */
+/* BUSCADOR SUCURSALES       */
+/* ========================= */
+
+.buscador-sucursales-wrap { margin-bottom: 14px; }
+
+.buscador-sucursales {
+  width: 100%;
+  height: 36px;
+  padding: 0 12px 0 34px;
+  background: var(--bg-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-1);
+  font-size: .82rem;
+  transition: border-color .15s, box-shadow .15s;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: 10px center;
+}
+
+.buscador-sucursales:focus {
+  outline: none;
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px var(--brand-glow);
+}
+
+.sucursal-card.oculta { display: none; }
+
+/* ========================= */
+/* BTN RENAME SUCURSAL       */
+/* ========================= */
+
+.btn-rename-suc {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 5px;
+  background: transparent;
+  color: var(--text-4);
+  font-size: .72rem;
+  padding: 2px 5px;
+  border-radius: 5px;
+  transition: all .15s;
+}
+.btn-rename-suc:hover { background: var(--bg-3); color: var(--brand-light); }
+
+/* ========================= */
+/* ADMIN AVISO               */
+/* ========================= */
+
+.admin-aviso {
+  background: rgba(239,68,68,.06);
+  border: 1px solid rgba(239,68,68,.15);
+  border-radius: var(--radius-sm);
+  padding: 10px 13px;
+  margin-bottom: 12px;
+}
+.admin-aviso p    { font-size: .76rem; color: var(--text-2); margin-bottom: 3px; }
+.admin-aviso p:last-child { margin-bottom: 0; }
+.admin-aviso code { background: rgba(0,0,0,.2); padding: 1px 5px; border-radius: 3px; font-size: .68rem; color: #fca5a5; }
+
+/* ========================= */
+/* FECHA CHIPS - FORZADO     */
+/* ========================= */
+
+div.mov-fecha-toolbar {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  flex-wrap: wrap !important;
+  margin-bottom: 14px !important;
+  padding: 10px 14px !important;
+  background: var(--bg-3) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-sm) !important;
+}
+
+div.mov-fecha-chips {
+  display: flex !important;
+  gap: 5px !important;
+  flex-wrap: wrap !important;
+}
+
+button.fecha-chip {
+  display: inline-flex !important;
+  align-items: center !important;
+  padding: 5px 14px !important;
+  border-radius: 999px !important;
+  font-size: .76rem !important;
+  font-weight: 600 !important;
+  background: var(--bg) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text-3) !important;
+  cursor: pointer !important;
+  transition: all .15s !important;
+  white-space: nowrap !important;
+}
+
+button.fecha-chip:hover  { border-color: var(--brand) !important; color: var(--brand-light) !important; }
+button.fecha-chip.activa { background: var(--brand) !important; border-color: var(--brand) !important; color: white !important; }
+
+div.mov-fecha-rango {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  margin-left: auto !important;
+  flex-wrap: nowrap !important;
+}
+
+div.mov-fecha-rango label {
+  font-size: .72rem !important;
+  font-weight: 600 !important;
+  color: var(--text-4) !important;
+  white-space: nowrap !important;
+}
+
+div.mov-fecha-rango input[type="date"] {
+  height: 32px !important;
+  padding: 0 8px !important;
+  background: var(--bg-2) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-xs) !important;
+  color: var(--text-1) !important;
+  font-size: .76rem !important;
+  font-family: inherit !important;
+  cursor: pointer !important;
+  min-width: 130px !important;
+}
+
+div.mov-fecha-rango input[type="date"]:focus {
+  outline: none !important;
+  border-color: var(--brand) !important;
+  box-shadow: 0 0 0 3px var(--brand-glow) !important;
+}
+
+div.mov-fecha-rango .btn-ghost {
+  padding: 0 8px !important;
+  height: 32px !important;
+  font-size: .8rem !important;
+  flex-shrink: 0 !important;
+}
+
+/* ========================= */
+/* FECHA RANGO - MÓVIL FIX   */
+/* ========================= */
+
+@media (max-width: 900px) {
+  div.mov-fecha-toolbar {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+  }
+
+  div.mov-fecha-chips {
+    width: 100% !important;
+    gap: 6px !important;
+  }
+
+  button.fecha-chip {
+    padding: 5px 11px !important;
+    font-size: .72rem !important;
+  }
+
+  div.mov-fecha-rango {
+    width: 100% !important;
+    margin-left: 0 !important;
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+  }
+
+  div.mov-fecha-rango input[type="date"] {
+    flex: 1 !important;
+    min-width: 120px !important;
+  }
+
+  div.mov-fecha-rango label {
+    font-size: .7rem !important;
+  }
+
+  /* Toolbar movimientos en columna */
+  .mov-toolbar {
+    flex-direction: column !important;
+    gap: 6px !important;
+  }
+
+  .mov-toolbar input,
+  .mov-toolbar select,
+  .mov-toolbar .btn-success,
+  .mov-toolbar .btn-ghost {
+    width: 100% !important;
+    min-width: unset !important;
+  }
+
+  /* Stats movimientos en fila */
+  .mov-stats {
+    grid-template-columns: 1fr 1fr 1fr !important;
+    gap: 6px !important;
+  }
+
+  .mov-stat span { font-size: 1.1rem !important; }
+  .mov-stat p    { font-size: .62rem !important; }
+}
+
+@media (max-width: 500px) {
+  .mov-stats { grid-template-columns: 1fr !important; }
+
+  div.mov-fecha-rango {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+
+  div.mov-fecha-rango input[type="date"] {
+    width: 100% !important;
+  }
 }
