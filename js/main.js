@@ -259,10 +259,32 @@ function mostrarAuth() {
   actualizarDashboardMovimientos([]);
 }
 
+function aplicarPermisosPorRol() {
+  const esAdmin = usuarioActivo?.rol === "admin";
+
+  // Secciones solo admin
+  document.querySelectorAll(".solo-admin-section").forEach(el => {
+    if (esAdmin) {
+      el.classList.remove("oculto");
+      el.classList.remove("oculto-rol");
+    } else {
+      el.classList.add("oculto");
+    }
+  });
+
+  // Nav items solo admin
+  document.querySelectorAll(".solo-admin").forEach(el => {
+    el.style.display = esAdmin ? "" : "none";
+  });
+}
+
 function mostrarApp() {
   seccionAuth.classList.add("oculto");
   seccionUsuario.classList.remove("oculto");
   seccionesApp.forEach((s) => s.classList.remove("oculto"));
+
+  // Aplicar permisos por rol
+  aplicarPermisosPorRol();
 
   const topbar  = document.querySelector("#topbar");
   const sidebar = document.querySelector("#sidebar");

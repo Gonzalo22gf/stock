@@ -24,58 +24,55 @@
     </div>
     <div>
       <span class="sidebar-logo-name">StockAlert</span>
-      <span class="sidebar-logo-ver">v3.5</span>
+      <span class="sidebar-logo-ver">v4.0</span>
     </div>
   </div>
 
   <nav class="sidebar-nav">
-    <div class="nav-group-label">Principal</div>
-    <a href="#panelDecisiones" class="nav-item activo" data-section="dashboard">
+    <!-- ADMIN ONLY -->
+    <div class="nav-group-label solo-admin">Dashboard</div>
+    <a href="#" class="nav-item activo solo-admin" data-section="dashboard">
       <svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-      Dashboard
-    </a>
-    <a href="#seccionProductos" class="nav-item" data-section="productos">
-      <svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
-      Productos
-    </a>
-    <a href="#formProducto" class="nav-item" data-section="lotes">
-      <svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
-      Lotes
+      <span class="nav-label">Dashboard</span>
     </a>
 
-    <div class="nav-group-label">Análisis</div>
-    <a href="#seccionHistorial" class="nav-item" data-section="movimientos">
+    <div class="nav-group-label">Inventario</div>
+    <a href="#" class="nav-item" data-section="productos">
+      <svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+      <span class="nav-label">Productos</span>
+    </a>
+
+    <!-- ADMIN ONLY -->
+    <div class="nav-group-label solo-admin">Análisis</div>
+    <a href="#" class="nav-item solo-admin" data-section="movimientos">
       <svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-      Movimientos
-    </a>
-    <a href="#dashboardGraficos" class="nav-item" data-section="reportes">
-      <svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-      Reportes
-    </a>
-    <a href="#panelDecisiones" class="nav-item" data-section="alertas">
-      <svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-      Alertas
+      <span class="nav-label">Movimientos</span>
       <span class="nav-badge" id="navBadgeAlertas"></span>
+    </a>
+    <a href="#" class="nav-item solo-admin" data-section="reportes">
+      <svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      <span class="nav-label">Reportes</span>
     </a>
 
     <div class="nav-group-label">Herramientas</div>
-    <a href="#btnExportarExcel" class="nav-item">
+    <a href="#" class="nav-item" data-section="importar">
       <svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-      Importar / Exportar
+      <span class="nav-label">Importar / Exportar</span>
     </a>
-    <a href="#btnEscanear" class="nav-item">
+    <a href="#" class="nav-item" data-section="escaner">
       <svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
-      Escáner EAN-13
+      <span class="nav-label">Escáner EAN</span>
     </a>
 
-    <div class="nav-group-label">Administración</div>
-    <a href="#seccionUsuario" class="nav-item">
-      <svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-      Mi cuenta
-    </a>
-    <a href="#panelAdminGlobal" class="nav-item">
+    <!-- ADMIN ONLY -->
+    <div class="nav-group-label solo-admin">Administración</div>
+    <a href="#" class="nav-item solo-admin" data-section="sucursales">
       <svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-      Sucursales
+      <span class="nav-label">Sucursales</span>
+    </a>
+    <a href="#" class="nav-item" data-section="cuenta">
+      <svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span class="nav-label">Mi cuenta</span>
     </a>
   </nav>
 
@@ -124,7 +121,7 @@
   <!-- TOPBAR -->
   <header class="topbar oculto" id="topbar">
     <div class="topbar-left">
-      <button class="btn-collapse" id="btnCollapseSidebar" type="button" title="Colapsar menú">
+      <button class="btn-collapse" id="btnCollapseSidebar" type="button">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
           <line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/>
         </svg>
@@ -161,7 +158,6 @@
     </div>
   </header>
 
-  <!-- CONTENIDO -->
   <main class="page-content">
 
     <!-- ===== LOGIN ===== -->
@@ -199,9 +195,7 @@
             </div>
             <button type="submit" class="btn-login">Ingresar al sistema</button>
           </form>
-
           <div class="login-sep"><span>o registrá una nueva sucursal</span></div>
-
           <form id="formRegistro" class="login-form" autocomplete="off">
             <h2>Nueva sucursal</h2>
             <div class="form-grid-2">
@@ -237,8 +231,18 @@
       <div><h2 id="nombreUsuario">Usuario</h2><p id="nombreSucursal">Sucursal</p></div>
     </section>
 
-    <!-- ===== ADMIN GLOBAL ===== -->
-    <section id="panelAdminGlobal" class="card seccion-app oculto">
+    <!-- ===== SOLO ADMIN: Selector de sucursal ===== -->
+    <section id="selectorSucursalWrap" class="seccion-app oculto solo-admin-section">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <label style="font-size:.76rem;font-weight:600;color:var(--text-4)">🏪 Ver sucursal</label>
+        <select id="filtroSucursalAdmin" style="height:34px;padding:0 10px;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-1);font-size:.8rem;font-family:inherit;">
+          <option value="">Todas las sucursales</option>
+        </select>
+      </div>
+    </section>
+
+    <!-- ===== SOLO ADMIN: Panel Admin ===== -->
+    <section id="panelAdminGlobal" class="card seccion-app oculto solo-admin-section">
       <div class="card-header">
         <h2>Panel Administrador Global</h2>
         <button class="chip-btn" onclick="abrirConfigAlertas()" type="button">⚙️ Configurar alertas</button>
@@ -263,80 +267,8 @@
       </div>
     </section>
 
-    <!-- ===== AGREGAR PRODUCTO ===== -->
-    <section class="card seccion-app oculto">
-      <div class="card-header"><h2>Agregar producto</h2></div>
-      <form id="formProducto" class="form-producto" autocomplete="off">
-        <input type="text" id="codigoBarras" placeholder="EAN / Código de barras" autocomplete="off" spellcheck="false">
-        <button id="btnEscanear" type="button" class="btn-scan">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
-          Escanear EAN
-        </button>
-                <div id="lectorCodigo" class="lector oculto"></div>
-        <input type="text" id="nombre" placeholder="Nombre del producto" required autocomplete="off" spellcheck="false">
-        <select id="categoria" required>
-          <option value="">Categoría</option>
-          <option value="Lácteos">Lácteos</option>
-          <option value="Bebidas">Bebidas</option>
-          <option value="Almacén">Almacén</option>
-          <option value="Limpieza">Limpieza</option>
-          <option value="Congelados">Congelados</option>
-        </select>
-        <input type="number" id="precio" placeholder="Precio $" min="1" required autocomplete="off">
-        <div id="contenedorLotes" class="contenedor-lotes">
-          <div class="fila-lote">
-            <input type="text" class="lote-numero" placeholder="N° de lote" autocomplete="off" spellcheck="false">
-            <input type="number" class="lote-stock" placeholder="Stock" min="0" required autocomplete="off">
-            <input type="date" class="lote-vencimiento" required autocomplete="off">
-          </div>
-        </div>
-        <button id="btnAgregarLote" type="button" class="btn-secondary">🗑️ Limpiar</button>
-        <input type="hidden" id="lote">
-        <input type="hidden" id="stock">
-        <input type="hidden" id="vencimiento">
-        <button type="submit" class="btn-primary">Guardar producto</button>
-      </form>
-    </section>
-
-    <!-- ===== FILTROS ===== -->
-    <section class="card seccion-app oculto">
-      <div class="card-header"><h2>Buscar y filtrar</h2></div>
-      <div class="filtros">
-        <input type="text" id="buscador" placeholder="Buscar por nombre, EAN o lote..." autocomplete="off" spellcheck="false">
-        <select id="filtroCategoria">
-          <option value="todas">Todas las categorías</option>
-          <option value="Lácteos">Lácteos</option>
-          <option value="Bebidas">Bebidas</option>
-          <option value="Almacén">Almacén</option>
-          <option value="Limpieza">Limpieza</option>
-          <option value="Congelados">Congelados</option>
-        </select>
-        <select id="filtroEstado">
-          <option value="todos">Todos los estados</option>
-          <option value="ok">En buen estado</option>
-          <option value="por-vencer">Por vencer</option>
-          <option value="vencido">Vencidos</option>
-        </select>
-        <select id="ordenar">
-          <option value="">Ordenar por...</option>
-          <option value="nombre">Nombre A→Z</option>
-          <option value="stock">Stock ↑</option>
-          <option value="vencimiento">Vencimiento ↑</option>
-        </select>
-        <div class="vista-toggle">
-          <button class="btn-vista activa" id="btnVistaCards" type="button" title="Vista cards">⊞</button>
-          <button class="btn-vista" id="btnVistaLista" type="button" title="Vista lista">≡</button>
-          <button class="btn-vista" id="btnVistaTabla" type="button" title="Vista tabla">⊟</button>
-        </div>
-        <button id="btnLimpiarFiltros" class="btn-ghost" type="button">Limpiar</button>
-        <button id="btnExportarExcel" class="btn-success" type="button">↓ Exportar Excel</button>
-        <input type="file" id="inputImportar" accept=".csv,.xlsx">
-        <button id="btnImportarExcel" class="btn-outline" type="button">↑ Importar</button>
-      </div>
-    </section>
-
-    <!-- ===== KPI CARDS ===== -->
-    <section class="kpi-row seccion-app oculto">
+    <!-- ===== SOLO ADMIN: KPI CARDS ===== -->
+    <section class="kpi-row seccion-app oculto solo-admin-section">
       <div class="kpi-card kpi-blue">
         <div class="kpi-left">
           <p class="kpi-lbl">Productos críticos</p>
@@ -382,8 +314,8 @@
       </div>
     </section>
 
-    <!-- ===== PANEL DECISIONES ===== -->
-    <section id="panelDecisiones" class="seccion-app oculto">
+    <!-- ===== SOLO ADMIN: Panel Decisiones (urgentes + top 10) ===== -->
+    <section id="panelDecisiones" class="seccion-app oculto solo-admin-section">
       <div class="two-col-grid">
         <div class="card">
           <div class="card-header">
@@ -406,8 +338,8 @@
       </div>
     </section>
 
-    <!-- ===== GRÁFICOS ===== -->
-    <section id="dashboardGraficos" class="seccion-app oculto">
+    <!-- ===== SOLO ADMIN: Gráficos ===== -->
+    <section id="dashboardGraficos" class="seccion-app oculto solo-admin-section">
       <div class="card">
         <div class="card-header"><h2>📊 Dashboard Ejecutivo</h2></div>
         <div class="charts-grid">
@@ -419,7 +351,7 @@
       </div>
     </section>
 
-    <!-- ===== RESUMEN STATS ===== -->
+    <!-- ===== STATS (todos los roles) ===== -->
     <section class="stats-row seccion-app oculto">
       <div class="stat-card"><div class="stat-icon" style="background:rgba(99,102,241,.12);color:#6366f1">📦</div><div><span id="totalProductos">0</span><p>Total productos</p><small>En inventario</small></div></div>
       <div class="stat-card"><div class="stat-icon" style="background:rgba(250,204,21,.12);color:#ca8a04">⚠️</div><div><span id="productosPorVencer">0</span><p>Por vencer</p><small>Próx. 7 días</small></div></div>
@@ -429,7 +361,79 @@
       <div class="stat-card stat-card-wide"><div class="stat-icon" style="background:rgba(34,197,94,.12);color:#16a34a">💰</div><div><span id="valorInventario">$0</span><p>Valor inventario</p><small>Total reposición</small></div></div>
     </section>
 
-    <!-- ===== PRODUCTOS ===== -->
+    <!-- ===== AGREGAR PRODUCTO (todos) ===== -->
+    <section class="card seccion-app oculto">
+      <div class="card-header"><h2>Agregar producto</h2></div>
+      <form id="formProducto" class="form-producto" autocomplete="off">
+        <input type="text" id="codigoBarras" placeholder="EAN / Código de barras" autocomplete="off" spellcheck="false">
+        <button id="btnEscanear" type="button" class="btn-scan">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
+          Escanear EAN
+        </button>
+        <div id="lectorCodigo" class="lector oculto"></div>
+        <input type="text" id="nombre" placeholder="Nombre del producto" required autocomplete="off" spellcheck="false">
+        <select id="categoria" required>
+          <option value="">Categoría</option>
+          <option value="Lácteos">Lácteos</option>
+          <option value="Bebidas">Bebidas</option>
+          <option value="Almacén">Almacén</option>
+          <option value="Limpieza">Limpieza</option>
+          <option value="Congelados">Congelados</option>
+        </select>
+        <input type="number" id="precio" placeholder="Precio $" min="1" required autocomplete="off">
+        <div id="contenedorLotes" class="contenedor-lotes">
+          <div class="fila-lote">
+            <input type="text" class="lote-numero" placeholder="N° de lote" autocomplete="off" spellcheck="false">
+            <input type="number" class="lote-stock" placeholder="Stock" min="0" required autocomplete="off">
+            <input type="date" class="lote-vencimiento" required autocomplete="off">
+          </div>
+        </div>
+        <button id="btnAgregarLote" type="button" class="btn-secondary">🗑️ Limpiar</button>
+        <input type="hidden" id="lote">
+        <input type="hidden" id="stock">
+        <input type="hidden" id="vencimiento">
+        <button type="submit" class="btn-primary">Guardar producto</button>
+      </form>
+    </section>
+
+    <!-- ===== FILTROS (todos) ===== -->
+    <section class="card seccion-app oculto">
+      <div class="card-header"><h2>Buscar y filtrar</h2></div>
+      <div class="filtros">
+        <input type="text" id="buscador" placeholder="Buscar por nombre, EAN o lote..." autocomplete="off" spellcheck="false">
+        <select id="filtroCategoria">
+          <option value="todas">Todas las categorías</option>
+          <option value="Lácteos">Lácteos</option>
+          <option value="Bebidas">Bebidas</option>
+          <option value="Almacén">Almacén</option>
+          <option value="Limpieza">Limpieza</option>
+          <option value="Congelados">Congelados</option>
+        </select>
+        <select id="filtroEstado">
+          <option value="todos">Todos los estados</option>
+          <option value="ok">En buen estado</option>
+          <option value="por-vencer">Por vencer</option>
+          <option value="vencido">Vencidos</option>
+        </select>
+        <select id="ordenar">
+          <option value="">Ordenar por...</option>
+          <option value="nombre">Nombre A→Z</option>
+          <option value="stock">Stock ↑</option>
+          <option value="vencimiento">Vencimiento ↑</option>
+        </select>
+        <div class="vista-toggle">
+          <button class="btn-vista activa" id="btnVistaCards" type="button" title="Vista cards">⊞</button>
+          <button class="btn-vista" id="btnVistaLista" type="button" title="Vista lista">≡</button>
+          <button class="btn-vista" id="btnVistaTabla" type="button" title="Vista tabla">⊟</button>
+        </div>
+        <button id="btnLimpiarFiltros" class="btn-ghost" type="button">Limpiar</button>
+        <button id="btnExportarExcel" class="btn-success" type="button">↓ Exportar Excel</button>
+        <input type="file" id="inputImportar" accept=".csv,.xlsx">
+        <button id="btnImportarExcel" class="btn-outline" type="button">↑ Importar</button>
+      </div>
+    </section>
+
+    <!-- ===== PRODUCTOS (todos) ===== -->
     <section class="card seccion-app oculto" id="seccionProductos">
       <div class="card-header">
         <h2>Listado de productos</h2>
@@ -443,8 +447,8 @@
       <div class="pagination" id="paginacionProductos"></div>
     </section>
 
-    <!-- ===== HISTORIAL ===== -->
-    <section id="seccionHistorial" class="card seccion-app oculto">
+    <!-- ===== SOLO ADMIN: Historial ===== -->
+    <section id="seccionHistorial" class="card seccion-app oculto solo-admin-section">
       <div class="card-header"><h2>📋 Historial de movimientos</h2></div>
       <div class="mov-stats">
         <div class="mov-stat crear"><span id="totalCrear">0</span><p>Creados hoy</p></div>
@@ -495,75 +499,73 @@
   </main>
 
   <footer class="app-footer">
-    <span>StockAlert v3.5</span>
+    <span>StockAlert v4.0</span>
     <span>·</span>
     <span>Sistema de control de inventario</span>
   </footer>
 </div>
 
-  <!-- FAB Scanner Button -->
-  <button class="fab-scanner" id="fabScanner" aria-label="Escanear EAN">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <rect x="3" y="3" width="18" height="18" rx="2"/>
-      <line x1="3" y1="9" x2="21" y2="9"/>
-      <line x1="3" y1="15" x2="21" y2="15"/>
-      <line x1="9" y1="3" x2="9" y2="21"/>
-      <line x1="15" y1="3" x2="15" y2="21"/>
-    </svg>
-  </button>
+<!-- FAB Scanner -->
+<button class="fab-scanner" id="fabScanner" aria-label="Escanear EAN">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <rect x="3" y="3" width="18" height="18" rx="2"/>
+    <line x1="3" y1="9" x2="21" y2="9"/>
+    <line x1="3" y1="15" x2="21" y2="15"/>
+    <line x1="9" y1="3" x2="9" y2="21"/>
+    <line x1="15" y1="3" x2="15" y2="21"/>
+  </svg>
+</button>
 
-  <!-- Modal FAB Scanner -->
-  <div class="fab-modal-overlay" id="fabModalOverlay">
-    <div class="fab-modal">
-      <div class="fab-modal-header">
-        <div class="fab-modal-title">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
-          Escanear y agregar producto
-        </div>
-        <button class="fab-modal-close" id="fabModalClose">✕</button>
+<!-- Modal FAB Scanner -->
+<div class="fab-modal-overlay" id="fabModalOverlay">
+  <div class="fab-modal">
+    <div class="fab-modal-header">
+      <div class="fab-modal-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
+        Escanear y agregar producto
       </div>
-      <div id="fabLectorCodigo"></div>
-      <div class="fab-ean-display" id="fabEanDisplay" style="display:none">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-        <span id="fabEanValor">—</span>
-        <small style="color:var(--text-4);font-weight:400">EAN detectado</small>
+      <button class="fab-modal-close" id="fabModalClose">✕</button>
+    </div>
+    <div id="fabLectorCodigo"></div>
+    <div class="fab-ean-display" id="fabEanDisplay" style="display:none">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      <span id="fabEanValor">—</span>
+      <small style="color:var(--text-4);font-weight:400">EAN detectado</small>
+    </div>
+    <div class="fab-modal-campos" id="fabCampos" style="display:none">
+      <div class="fab-campo-row full">
+        <input type="text" id="fabNombre" placeholder="Nombre del producto *" autocomplete="off" spellcheck="false">
       </div>
-      <div class="fab-modal-campos" id="fabCampos" style="display:none">
-        <div class="fab-campo-row full">
-          <input type="text" id="fabNombre" placeholder="Nombre del producto *" autocomplete="off" spellcheck="false">
-        </div>
-        <div class="fab-campo-row">
-          <select id="fabCategoria">
-            <option value="">Categoría *</option>
-            <option value="Lácteos">Lácteos</option>
-            <option value="Bebidas">Bebidas</option>
-            <option value="Almacén">Almacén</option>
-            <option value="Limpieza">Limpieza</option>
-            <option value="Congelados">Congelados</option>
-          </select>
-          <input type="number" id="fabPrecio" placeholder="Precio $" min="1">
-        </div>
-        <div class="fab-campo-row">
-          <input type="text" id="fabLote" placeholder="N° de lote" autocomplete="off">
-          <input type="number" id="fabStock" placeholder="Stock" min="0">
-        </div>
-        <div class="fab-campo-row full">
-          <input type="date" id="fabVencimiento">
-        </div>
-        <button class="fab-btn-guardar" id="fabBtnGuardar" type="button">Guardar producto</button>
-        <button id="fabBtnNuevoEscaneo" type="button" style="display:none;width:100%;height:38px;background:var(--bg-3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-3);font-size:.8rem;font-weight:600;margin-top:4px;cursor:pointer;">
-          📷 Escanear otro producto
-        </button>
+      <div class="fab-campo-row">
+        <select id="fabCategoria">
+          <option value="">Categoría *</option>
+          <option value="Lácteos">Lácteos</option>
+          <option value="Bebidas">Bebidas</option>
+          <option value="Almacén">Almacén</option>
+          <option value="Limpieza">Limpieza</option>
+          <option value="Congelados">Congelados</option>
+        </select>
+        <input type="number" id="fabPrecio" placeholder="Precio $" min="1">
       </div>
+      <div class="fab-campo-row">
+        <input type="text" id="fabLote" placeholder="N° de lote" autocomplete="off">
+        <input type="number" id="fabStock" placeholder="Stock" min="0">
+      </div>
+      <div class="fab-campo-row full">
+        <input type="date" id="fabVencimiento">
+      </div>
+      <button class="fab-btn-guardar" id="fabBtnGuardar" type="button">Guardar producto</button>
+      <button id="fabBtnNuevoEscaneo" type="button" style="display:none;width:100%;height:38px;background:var(--bg-3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-3);font-size:.8rem;font-weight:600;margin-top:4px;cursor:pointer;">
+        📷 Escanear otro producto
+      </button>
     </div>
   </div>
+</div>
 
 <script>
-  // Fecha topbar
   const _fecha = document.getElementById('topbarFecha');
   if(_fecha) _fecha.textContent = new Date().toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric'});
 
-  // Búsqueda global Ctrl/Cmd+K
   const _sOverlay = document.getElementById('busquedaOverlay');
   const _sInput   = document.getElementById('busquedaGlobalInput');
   const _sBtn     = document.getElementById('btnBusquedaGlobal');

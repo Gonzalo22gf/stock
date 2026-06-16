@@ -2288,3 +2288,8 @@ div.mov-fecha-rango .btn-ghost {
     width: 100% !important;
   }
 }
+
+/* ========================= */
+/* PERMISOS POR ROL          */
+/* ========================= */
+.oculto-rol { display: none !important; }
