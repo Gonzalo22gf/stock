@@ -2780,10 +2780,12 @@ function obtenerEstadoStockConf(stock) {
 
 // ========================= //
 // FAB SCANNER FLOTANTE      //
+// MODO RÁFAGA               //
 // ========================= //
 
 let fabQrCode = null;
 let fabEscanerActivo = false;
+let fabSucursalFija = null; // sucursal fijada para modo ráfaga
 
 function mostrarFAB() {
   const fab = document.getElementById("fabScanner");
@@ -2796,82 +2798,94 @@ function ocultarFAB() {
 }
 
 function iniciarFAB() {
-  const fab        = document.getElementById("fabScanner");
-  const overlay    = document.getElementById("fabModalOverlay");
-  const btnClose   = document.getElementById("fabModalClose");
-  const btnGuardar = document.getElementById("fabBtnGuardar");
-
+  const fab = document.getElementById("fabScanner");
   if (!fab) return;
-
   fab.addEventListener("click", abrirFabModal);
-  btnClose?.addEventListener("click", cerrarFabModal);
-  overlay?.addEventListener("click", (e) => { if (e.target === overlay) cerrarFabModal(); });
-  btnGuardar?.addEventListener("click", guardarProductoFAB);
+  document.getElementById("fabModalClose")?.addEventListener("click", cerrarFabModal);
+  document.getElementById("fabModalOverlay")?.addEventListener("click", (e) => {
+    if (e.target.id === "fabModalOverlay") cerrarFabModal();
+  });
+  document.getElementById("fabBtnGuardar")?.addEventListener("click", guardarProductoFAB);
+  document.getElementById("fabBtnNuevoEscaneo")?.addEventListener("click", reiniciarFabEscaner);
 }
 
 async function abrirFabModal() {
   const overlay = document.getElementById("fabModalOverlay");
   if (!overlay) return;
+  overlay.classList.add("activo");
+  fabSucursalFija = sucursalSeleccionada || null;
+  resetFabCampos();
+  await iniciarFabScanner();
+}
 
-  // Reset UI
+function resetFabCampos() {
+  const ids = ["fabNombre","fabPrecio","fabLote","fabStock","fabVencimiento"];
+  ids.forEach(id => { const el = document.getElementById(id); if (el) el.value = ""; });
+  const cat = document.getElementById("fabCategoria");
+  if (cat) cat.value = "";
   document.getElementById("fabEanDisplay").style.display = "none";
   document.getElementById("fabCampos").style.display     = "none";
-  document.getElementById("fabEanValor").textContent     = "—";
-  document.getElementById("fabNombre").value    = "";
-  document.getElementById("fabCategoria").value = "";
-  document.getElementById("fabPrecio").value    = "";
-  document.getElementById("fabLote").value      = "";
-  document.getElementById("fabStock").value     = "";
-  document.getElementById("fabVencimiento").value = "";
+  document.getElementById("fabBtnNuevoEscaneo").style.display = "none";
+  document.getElementById("fabEanValor").textContent = "—";
+  document.getElementById("fabBtnGuardar").dataset.ean = "";
+  // Mostrar scanner
+  document.getElementById("fabLectorCodigo").style.display = "block";
+}
 
-  overlay.classList.add("activo");
-
-  // Iniciar cámara
+async function iniciarFabScanner() {
   const lectorEl = document.getElementById("fabLectorCodigo");
   if (!lectorEl) return;
+  lectorEl.style.display = "block";
+  lectorEl.innerHTML = ""; // limpiar instancia anterior
 
   try {
     fabQrCode = new Html5Qrcode("fabLectorCodigo");
     await fabQrCode.start(
       { facingMode: "environment" },
-      { fps: 10, qrbox: { width: 240, height: 100 } },
+      { fps: 15, qrbox: { width: 260, height: 110 } },
       async (codigoDetectado) => {
-        // EAN detectado — detener cámara y mostrar campos
         await detenerFabScanner();
 
+        // Vibrar
+        if (navigator.vibrate) navigator.vibrate([80, 40, 80]);
+
+        // Ocultar scanner, mostrar campos
+        document.getElementById("fabLectorCodigo").style.display = "none";
         document.getElementById("fabEanValor").textContent = codigoDetectado;
         document.getElementById("fabEanDisplay").style.display = "flex";
         document.getElementById("fabCampos").style.display     = "flex";
-
-        // Guardar EAN para cuando se guarde el producto
+        document.getElementById("fabBtnNuevoEscaneo").style.display = "block";
         document.getElementById("fabBtnGuardar").dataset.ean = codigoDetectado;
 
-        // Vibrar si está disponible (móvil)
-        if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+        // Focus en nombre
+        setTimeout(() => document.getElementById("fabNombre")?.focus(), 100);
       }
     );
     fabEscanerActivo = true;
   } catch (error) {
-    Swal.fire({ icon: "error", title: "Error de cámara", text: "No se pudo acceder a la cámara. Verificá los permisos." });
+    Swal.fire({ icon: "error", title: "Error de cámara", text: "No se pudo acceder a la cámara." });
     cerrarFabModal();
   }
 }
 
 async function detenerFabScanner() {
   if (fabQrCode && fabEscanerActivo) {
-    try {
-      await fabQrCode.stop();
-      await fabQrCode.clear();
-    } catch(e) { /* ignorar */ }
+    try { await fabQrCode.stop(); await fabQrCode.clear(); } catch(e) {}
   }
   fabEscanerActivo = false;
   fabQrCode = null;
 }
 
+async function reiniciarFabEscaner() {
+  // Volver a modo escáner sin cerrar el modal
+  resetFabCampos();
+  await iniciarFabScanner();
+}
+
 async function cerrarFabModal() {
   await detenerFabScanner();
-  const overlay = document.getElementById("fabModalOverlay");
-  if (overlay) overlay.classList.remove("activo");
+  document.getElementById("fabModalOverlay")?.classList.remove("activo");
+  fabSucursalFija = null;
 }
 
 async function guardarProductoFAB() {
@@ -2879,32 +2893,31 @@ async function guardarProductoFAB() {
   const categoria   = document.getElementById("fabCategoria").value;
   const precio      = Number(document.getElementById("fabPrecio").value);
   const lote        = document.getElementById("fabLote").value.trim();
-  const stock       = Number(document.getElementById("fabStock").value);
+  const stock       = Number(document.getElementById("fabStock").value) || 0;
   const vencimiento = document.getElementById("fabVencimiento").value;
   const ean         = document.getElementById("fabBtnGuardar").dataset.ean || "";
 
   if (!nombre || !categoria || !precio || !vencimiento) {
-    Swal.fire({ icon: "warning", title: "Datos incompletos", text: "Nombre, categoría, precio y vencimiento son obligatorios." });
+    Swal.fire({ icon: "warning", title: "Datos incompletos", text: "Completá nombre, categoría, precio y vencimiento." });
     return;
   }
 
   const nuevoProducto = {
     nombre, categoria, precio, codigoBarras: ean,
-    lote, stock: stock || 0, vencimiento,
-    lotes: [{ numero: lote, stock: stock || 0, vencimiento }]
+    lote, stock, vencimiento,
+    lotes: [{ numero: lote, stock, vencimiento }]
   };
 
-  // Si es admin, asignar sucursal
+  // Asignar sucursal
   if (usuarioActivo?.rol === "admin") {
-    if (sucursalSeleccionada) {
-      nuevoProducto.sucursal = sucursalSeleccionada;
+    if (fabSucursalFija) {
+      nuevoProducto.sucursal = fabSucursalFija;
     } else if (sucursales.length > 0) {
       const opcs = sucursales.map(s => `<option value="${s._id}">${s.nombre}</option>`).join("");
       const { value: suc, isConfirmed } = await Swal.fire({
-        title: "¿A qué sucursal asignar?",
+        title: "¿A qué sucursal?",
         html: `<select id="swalSucFab" class="swal2-input" style="width:85%;margin:0 auto;display:block"><option value="">Seleccioná</option>${opcs}</select>`,
-        confirmButtonText: "Confirmar",
-        showCancelButton: true,
+        confirmButtonText: "Confirmar", showCancelButton: true,
         preConfirm: () => {
           const v = document.getElementById("swalSucFab").value;
           if (!v) { Swal.showValidationMessage("Seleccioná una sucursal"); return false; }
@@ -2913,10 +2926,12 @@ async function guardarProductoFAB() {
       });
       if (!isConfirmed) return;
       nuevoProducto.sucursal = suc;
+      fabSucursalFija = suc; // fijar para próximos escaneos
     }
   }
 
   const btn = document.getElementById("fabBtnGuardar");
+  const btnNuevo = document.getElementById("fabBtnNuevoEscaneo");
   btn.textContent = "Guardando...";
   btn.disabled = true;
 
@@ -2934,12 +2949,22 @@ async function guardarProductoFAB() {
     if (usuarioActivo?.rol === "admin") await cargarResumenSucursales();
     await cargarMovimientosAPI();
 
-    await cerrarFabModal();
+    // Mostrar éxito y volver a escanear automáticamente
+    btn.textContent = "✓ Guardado";
+    btn.style.background = "var(--green-bg)";
+    btn.style.color = "var(--green)";
 
-    Swal.fire({ icon: "success", title: "Producto guardado", text: `"${nombre}" agregado correctamente.`, timer: 1800, showConfirmButton: false });
+    setTimeout(async () => {
+      btn.textContent = "Guardar producto";
+      btn.style.background = "";
+      btn.style.color = "";
+      btn.disabled = false;
+      // Volver a escanear automáticamente
+      await reiniciarFabEscaner();
+    }, 1200);
+
   } catch (error) {
     Swal.fire({ icon: "error", title: "Error", text: error.message });
-  } finally {
     btn.textContent = "Guardar producto";
     btn.disabled = false;
   }
