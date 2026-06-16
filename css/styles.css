@@ -2293,3 +2293,103 @@ div.mov-fecha-rango .btn-ghost {
 /* PERMISOS POR ROL          */
 /* ========================= */
 .oculto-rol { display: none !important; }
+
+/* ========================= */
+/* TABLA SUCURSALES MÓVIL    */
+/* ========================= */
+
+/* La tabla de sucursales en móvil como cards */
+@media (max-width: 700px) {
+  /* Stats en 2x2 forzado */
+  .stats-row {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+  }
+
+  .stat-card-wide {
+    grid-column: 1 / -1 !important;
+  }
+
+  /* Mov stats en fila */
+  .mov-stats {
+    grid-template-columns: 1fr 1fr 1fr !important;
+    gap: 6px !important;
+  }
+
+  /* Tabla sucursales admin → cards */
+  #tablaSucursalesAdmin .tabla-admin thead { display: none !important; }
+  #tablaSucursalesAdmin .tabla-admin,
+  #tablaSucursalesAdmin .tabla-admin tbody,
+  #tablaSucursalesAdmin .tabla-admin tr,
+  #tablaSucursalesAdmin .tabla-admin td { display: block !important; }
+
+  #tablaSucursalesAdmin .tabla-admin tr {
+    background: var(--bg-3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    margin-bottom: 10px;
+    padding: 12px;
+  }
+
+  #tablaSucursalesAdmin .tabla-admin td {
+    padding: 3px 0 !important;
+    border: none !important;
+    font-size: .8rem !important;
+  }
+
+  #tablaSucursalesAdmin .tabla-admin td:nth-child(1)::before { content: "N°: ";              font-weight:700; color:var(--text-4); }
+  #tablaSucursalesAdmin .tabla-admin td:nth-child(2)::before { content: "Nombre: ";           font-weight:700; color:var(--text-4); }
+  #tablaSucursalesAdmin .tabla-admin td:nth-child(3)::before { content: "Dirección: ";        font-weight:700; color:var(--text-4); }
+  #tablaSucursalesAdmin .tabla-admin td:nth-child(4)::before { content: "Productos: ";        font-weight:700; color:var(--text-4); }
+  #tablaSucursalesAdmin .tabla-admin td:nth-child(5)::before { content: "Vencidos: ";         font-weight:700; color:var(--text-4); }
+  #tablaSucursalesAdmin .tabla-admin td:nth-child(6)::before { content: "Stock crítico: ";    font-weight:700; color:var(--text-4); }
+  #tablaSucursalesAdmin .tabla-admin td:nth-child(7)::before { content: "Valor: ";            font-weight:700; color:var(--text-4); }
+
+  /* Historial detalle del movimiento no se corte */
+  .card-movimiento p { white-space: normal !important; word-break: break-word; }
+
+  /* Selector sucursal admin más compacto */
+  #selectorSucursalWrap { padding: 8px 12px !important; }
+  #filtroSucursalAdmin  { width: 100% !important; max-width: 100% !important; }
+}
+
+/* ========================= */
+/* ACCIONES URGENTES FIX     */
+/* ========================= */
+
+/* Evitar espacio vacío cuando hay pocas filas */
+#tablaUrgencias:empty + .table-wrap,
+.data-table tbody:empty { min-height: unset !important; }
+
+.two-col-grid > .card { min-height: unset !important; }
+
+/* Selector sucursal admin - estilo consistente */
+#filtroSucursalAdmin {
+  height: 36px;
+  padding: 0 10px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-1);
+  font-size: .82rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color .15s;
+  min-width: 220px;
+}
+
+#filtroSucursalAdmin:focus {
+  outline: none;
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px var(--brand-glow);
+}
+
+#selectorSucursalWrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 4px 0 8px;
+}

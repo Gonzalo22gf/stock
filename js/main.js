@@ -72,6 +72,9 @@ let sucursalSeleccionada = "";
 let paginaMovimientos = 1;
 const movimientosPorPagina = 12;
 
+// Vista productos
+let vistaActual = localStorage.getItem("vistaProductos") || "tabla"; // tabla por defecto
+
 // Filtro fechas movimientos
 let filtroFechaDias = 0; // 0=hoy, 7=7días, 30=30días, -1=todos
 let filtroFechaDesdeVal = null;
@@ -82,8 +85,7 @@ let paginaProductos = 1;
 const productosPorPagina = 20;
 
 // Vista productos
-let vistaActual = "cards"; // "cards" o "lista"
-
+// Vista productos — definida arriba
 // KPI anteriores para tendencia
 let kpiPrevio = { criticos: null, valorRiesgo: null, porVencer: null };
 
@@ -175,6 +177,7 @@ async function iniciarApp() {
   iniciarFiltroFechas();
   iniciarToggleVista();
   iniciarSidebarCollapse();
+  iniciarNavSidebar();
   iniciarFAB();
 
   if (token && usuarioActivo) {
@@ -333,36 +336,21 @@ function iniciarTabsAdmin() {
 function crearSelectorSucursales() {
   if (usuarioActivo?.rol !== "admin") return;
 
-  const selectorExistente = document.querySelector("#selectorSucursalAdmin");
-  if (selectorExistente) selectorExistente.remove();
+  // Usar el select fijo del HTML (no crear uno dinámico que duplica)
+  const sel = document.querySelector("#filtroSucursalAdmin");
+  if (!sel) return;
 
-  const contenedorSelector = document.createElement("div");
-  contenedorSelector.id = "selectorSucursalAdmin";
-  contenedorSelector.style.marginTop = "12px";
+  // Poblar opciones
+  sel.innerHTML = '<option value="">Todas las sucursales</option>' +
+    sucursales.map(s => `<option value="${s._id}">${s.nombre}</option>`).join("");
 
-  contenedorSelector.innerHTML = `
-    <label for="filtroSucursalAdmin" style="display:block; font-weight:bold; margin-bottom:6px;">
-      🏪 Ver sucursal
-    </label>
-    <select id="filtroSucursalAdmin" style="
-      padding: 10px;
-      border-radius: 10px;
-      border: 1px solid #ccc;
-      width: 100%;
-      max-width: 280px;
-      font-weight: bold;
-    ">
-      <option value="">Todas las sucursales</option>
-      ${sucursales.map((s) => `<option value="${s._id}">${s.nombre}</option>`).join("")}
-    </select>
-  `;
+  sel.value = sucursalSeleccionada || "";
 
-  nombreSucursal.insertAdjacentElement("afterend", contenedorSelector);
+  // Evitar listeners duplicados
+  const newSel = sel.cloneNode(true);
+  sel.parentNode.replaceChild(newSel, sel);
 
-  const filtroSucursalAdmin = document.querySelector("#filtroSucursalAdmin");
-  filtroSucursalAdmin.value = sucursalSeleccionada;
-
-  filtroSucursalAdmin.addEventListener("change", async (e) => {
+  newSel.addEventListener("change", async (e) => {
     sucursalSeleccionada = e.target.value;
     paginaMovimientos = 1;
     paginaProductos = 1;
@@ -1967,6 +1955,76 @@ function iniciarFiltroFechas() {
       paginaMovimientos = 1;
       aplicarFiltroMovimientos();
     }
+  });
+}
+
+
+// ========================= //
+// NAVEGACIÓN SIDEBAR        //
+// ========================= //
+
+const SECCIONES_MAP = {
+  dashboard:  ["#panelAdminGlobal", "#kpi-row", ".kpi-row", "#panelDecisiones", "#dashboardGraficos", ".stats-row"],
+  productos:  ["#seccionProductos", ".card:has(#formProducto)", ".card:has(#buscador)"],
+  movimientos:["#seccionHistorial"],
+  reportes:   ["#dashboardGraficos"],
+  importar:   [".card:has(#btnExportarExcel)"],
+  escaner:    ["#lectorCodigo"],
+  sucursales: ["#panelAdminGlobal"],
+  cuenta:     ["#seccionUsuario"],
+};
+
+function navegarSeccion(seccion) {
+  // Scroll al elemento correspondiente
+  const targets = {
+    dashboard:   document.querySelector("#panelAdminGlobal") || document.querySelector(".kpi-row"),
+    productos:   document.querySelector("#seccionProductos"),
+    movimientos: document.querySelector("#seccionHistorial"),
+    reportes:    document.querySelector("#dashboardGraficos"),
+    importar:    document.querySelector("#btnExportarExcel")?.closest(".card"),
+    escaner:     document.querySelector("#btnEscanear")?.closest(".card"),
+    sucursales:  document.querySelector("#panelAdminGlobal"),
+    cuenta:      document.querySelector("#seccionUsuario"),
+  };
+
+  const el = targets[seccion];
+  if (el) {
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  // Si es escaner, activar directamente
+  if (seccion === "escaner") {
+    document.querySelector("#btnEscanear")?.click();
+  }
+
+  // Si es sucursales, ir al tab de sucursales del panel admin
+  if (seccion === "sucursales") {
+    const tabSuc = document.querySelector('.admin-tab[data-tab="sucursales"]');
+    if (tabSuc) tabSuc.click();
+    setTimeout(() => el?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+  }
+}
+
+function iniciarNavSidebar() {
+  document.querySelectorAll(".nav-item[data-section]").forEach(item => {
+    item.addEventListener("click", (e) => {
+      e.preventDefault();
+      const seccion = item.dataset.section;
+
+      // Marcar activo
+      document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("activo"));
+      item.classList.add("activo");
+
+      // Navegar
+      navegarSeccion(seccion);
+
+      // Cerrar sidebar en móvil
+      if (window.innerWidth <= 900) {
+        document.querySelector("#sidebar")?.classList.remove("open");
+        document.querySelector("#sidebarOverlay")?.classList.remove("show");
+        document.body.style.overflow = "";
+      }
+    });
   });
 }
 
