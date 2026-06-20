@@ -494,8 +494,7 @@ async function registrarUsuario(e) {
     nombre: document.querySelector("#registroNombre").value.trim(),
     email: document.querySelector("#registroEmail").value.trim(),
     password: document.querySelector("#registroPassword").value.trim(),
-    nombreSucursal: document.querySelector("#registroSucursal").value.trim(),
-    direccionSucursal: document.querySelector("#registroDireccion").value.trim()
+    numeroSucursal: document.querySelector("#registroSucursal").value.trim()
   };
   try {
     const respuesta = await fetch(`${API_URL}/api/usuarios/registro`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(nuevoUsuario) });
@@ -504,7 +503,7 @@ async function registrarUsuario(e) {
     guardarSesion(data); formRegistro.reset(); mostrarApp();
     if (usuarioActivo.rol === "admin") { await cargarSucursalesAPI(); await cargarResumenSucursales(); }
     await cargarProductosAPI(); await cargarMovimientosAPI();
-    Swal.fire({ icon: "success", title: "Sucursal registrada", text: "El usuario fue creado correctamente.", timer: 1800, showConfirmButton: false });
+    Swal.fire({ icon: "success", title: "Cuenta creada", text: "Te uniste a la sucursal correctamente.", timer: 1800, showConfirmButton: false });
   } catch (error) { Swal.fire({ icon: "error", title: "Error", text: error.message }); }
 }
 
