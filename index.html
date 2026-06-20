@@ -196,9 +196,9 @@
             </div>
             <button type="submit" class="btn-login">Ingresar al sistema</button>
           </form>
-          <div class="login-sep"><span>o registrá una nueva sucursal</span></div>
+          <div class="login-sep"><span>o unite a una sucursal existente</span></div>
           <form id="formRegistro" class="login-form" autocomplete="off">
-            <h2>Nueva sucursal</h2>
+            <h2>Crear cuenta</h2>
             <div class="form-grid-2">
               <div class="form-field">
                 <label>Tu nombre</label>
@@ -213,15 +213,11 @@
                 <input type="password" id="registroPassword" placeholder="••••••••" required autocomplete="new-password">
               </div>
               <div class="form-field">
-  <label>Número de sucursal</label>
-  <input type="number" id="registroSucursal" placeholder="Ej: 402" required autocomplete="off" spellcheck="false">
-</div>
+                <label>Número de sucursal</label>
+                <input type="number" id="registroSucursal" placeholder="Ej: 402" required autocomplete="off" spellcheck="false">
+              </div>
             </div>
-            <div class="form-field">
-              <label>Dirección <span class="opt">(opcional)</span></label>
-              <input type="text" id="registroDireccion" placeholder="Av. Corrientes 1234" autocomplete="off" spellcheck="false">
-            </div>
-            <button type="submit" class="btn-register">Registrar sucursal</button>
+            <button type="submit" class="btn-register">Crear cuenta</button>
           </form>
         </div>
       </div>
@@ -258,6 +254,9 @@
         <div id="resumenSucursales" class="resumen-sucursales"></div>
       </div>
       <div class="admin-tab-content" id="tab-sucursales">
+        <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
+          <button id="btnNuevaSucursal" class="chip-btn" type="button">+ Nueva sucursal</button>
+        </div>
         <div id="tablaSucursalesAdmin"></div>
       </div>
       <div class="admin-tab-content" id="tab-comparativo">

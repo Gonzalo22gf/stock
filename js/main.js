@@ -156,6 +156,8 @@ async function iniciarApp() {
   iniciarNavSidebar();
   iniciarFAB();
 
+  document.querySelector("#btnNuevaSucursal")?.addEventListener("click", crearSucursalNueva);
+
   if (token && usuarioActivo) {
     mostrarApp();
     if (usuarioActivo.rol === "admin") {
@@ -1481,11 +1483,13 @@ async function cargarUsuariosAdmin() {
                   <select class="select-rol" onchange="cambiarRolUsuario('${u._id}', this.value)">
                     <option value="admin" ${u.rol === "admin" ? "selected" : ""}>Admin</option>
                     <option value="jefe" ${u.rol === "jefe" ? "selected" : ""}>Jefe</option>
-                    <option value="usuario" ${u.rol === "usuario" ? "selected" : ""}>Usuario</option>
                   </select>
                 </td>
                 <td><span class="badge-estado-usuario ${u.activo === false ? "inactivo" : "activo"}">${u.activo === false ? "Inactivo" : "Activo"}</span></td>
-                <td><button class="btn-toggle-usuario" onclick="toggleActivarUsuario('${u._id}', ${u.activo !== false})">${u.activo === false ? "✅ Activar" : "🚫 Desactivar"}</button></td>
+                <td>
+                  <button class="btn-editar-usuario" onclick="editarUsuarioAdmin('${u._id}', '${u.nombre.replace(/'/g, "\\'")}', '${u.email}')" title="Editar datos">✏️ Editar</button>
+                  <button class="btn-toggle-usuario" onclick="toggleActivarUsuario('${u._id}', ${u.activo !== false})">${u.activo === false ? "✅ Activar" : "🚫 Desactivar"}</button>
+                </td>
               </tr>`).join("")}
           </tbody>
         </table>
@@ -1495,6 +1499,40 @@ async function cargarUsuariosAdmin() {
     contenedor.appendChild(divSuc);
     await cargarGestionSucursales(divSuc);
   } catch (error) { contenedor.innerHTML = `<p class="mensaje-vacio">Error al cargar usuarios.</p>`; await cargarGestionSucursales(contenedor); }
+}
+
+async function editarUsuarioAdmin(idUsuario, nombreActual, emailActual) {
+  const resultado = await Swal.fire({
+    title: "✏️ Editar usuario",
+    html: `
+      <div style="text-align:left;padding:0 4px">
+        <label style="display:block;font-size:.75rem;font-weight:700;color:#94a3b8;margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em">Nombre</label>
+        <input id="editUsrNombre" type="text" class="swal2-input" value="${nombreActual}" style="width:100%;margin:0 0 14px">
+        <label style="display:block;font-size:.75rem;font-weight:700;color:#94a3b8;margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em">Email</label>
+        <input id="editUsrEmail" type="email" class="swal2-input" value="${emailActual}" style="width:100%;margin:0 0 14px">
+        <label style="display:block;font-size:.75rem;font-weight:700;color:#94a3b8;margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em">Nueva contraseña <span style="font-weight:400;text-transform:none">(dejar vacío para no cambiarla)</span></label>
+        <input id="editUsrPassword" type="password" class="swal2-input" placeholder="••••••••" style="width:100%;margin:0">
+      </div>`,
+    showCancelButton: true, confirmButtonText: "Guardar cambios", cancelButtonText: "Cancelar", width: 460,
+    preConfirm: () => {
+      const nombre = document.querySelector("#editUsrNombre").value.trim();
+      const email = document.querySelector("#editUsrEmail").value.trim();
+      const password = document.querySelector("#editUsrPassword").value.trim();
+      if (!nombre || !email) { Swal.showValidationMessage("Nombre y email son obligatorios"); return false; }
+      if (password && password.length < 6) { Swal.showValidationMessage("La contraseña debe tener al menos 6 caracteres"); return false; }
+      const body = { nombre, email };
+      if (password) body.password = password;
+      return body;
+    }
+  });
+  if (!resultado.isConfirmed) return;
+  try {
+    const respuesta = await fetch(`${API_URL}/api/usuarios/${idUsuario}`, { method: "PUT", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify(resultado.value) });
+    const data = await respuesta.json();
+    if (!respuesta.ok) throw new Error(data.mensaje || "Error al editar usuario");
+    Swal.fire({ icon: "success", title: "Usuario actualizado", timer: 1500, showConfirmButton: false });
+    await cargarUsuariosAdmin();
+  } catch (error) { Swal.fire({ icon: "error", title: "Error", text: error.message }); }
 }
 
 async function cargarGestionSucursales(contenedor) {
@@ -1566,7 +1604,7 @@ async function cargarSucursalesAdmin() {
     }
     let resumenData = [];
     try { const respR = await fetch(`${API_URL}/api/sucursales/resumen`, { headers: { Authorization: `Bearer ${token}` } }); const dataR = await respR.json(); if (respR.ok) resumenData = dataR; } catch(e) {}
-    if (!sucursalesData || sucursalesData.length === 0) { contenedor.innerHTML = `<p class="mensaje-vacio">No hay sucursales registradas.</p>`; return; }
+    if (!sucursalesData || sucursalesData.length === 0) { contenedor.innerHTML = `<p class="mensaje-vacio">No hay sucursales registradas. Hacé clic en "+ Nueva sucursal" arriba para crear la primera.</p>`; return; }
     contenedor.innerHTML = `
       <div class="tabla-usuarios-wrap">
         <table class="tabla-admin">
@@ -1595,6 +1633,40 @@ async function cargarSucursalesAdmin() {
   }
 }
 
+async function crearSucursalNueva() {
+  const resultado = await Swal.fire({
+    title: "🏪 Nueva sucursal",
+    html: `
+      <div style="text-align:left;padding:0 4px">
+        <label style="display:block;font-size:.75rem;font-weight:700;color:#94a3b8;margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em">Zona</label>
+        <input id="nuevaSucZona" type="number" class="swal2-input" placeholder="Ej: 1" min="1" style="width:100%;margin:0 0 14px">
+        <label style="display:block;font-size:.75rem;font-weight:700;color:#94a3b8;margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em">Número de sucursal</label>
+        <input id="nuevaSucNumero" type="number" class="swal2-input" placeholder="Ej: 402" min="1" style="width:100%;margin:0 0 14px">
+        <label style="display:block;font-size:.75rem;font-weight:700;color:#94a3b8;margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em">Dirección <span style="font-weight:400;text-transform:none">(opcional)</span></label>
+        <input id="nuevaSucDireccion" type="text" class="swal2-input" placeholder="Av. Corrientes 1234" style="width:100%;margin:0">
+      </div>`,
+    showCancelButton: true, confirmButtonText: "Crear sucursal", cancelButtonText: "Cancelar", width: 460,
+    preConfirm: () => {
+      const zona = document.querySelector("#nuevaSucZona").value.trim();
+      const numero = document.querySelector("#nuevaSucNumero").value.trim();
+      const direccion = document.querySelector("#nuevaSucDireccion").value.trim();
+      if (!zona || !numero) { Swal.showValidationMessage("Zona y número son obligatorios"); return false; }
+      return { zona: Number(zona), numero: Number(numero), direccion };
+    }
+  });
+  if (!resultado.isConfirmed) return;
+  try {
+    const respuesta = await fetch(`${API_URL}/api/sucursales`, { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify(resultado.value) });
+    const data = await respuesta.json();
+    if (!respuesta.ok) throw new Error(data.mensaje || "Error al crear sucursal");
+    Swal.fire({ icon: "success", title: "Sucursal creada", text: `"${data.sucursal.nombre}" lista para usar.`, timer: 1800, showConfirmButton: false });
+    sucursales = [];
+    await cargarSucursalesAPI();
+    await cargarSucursalesAdmin();
+    await cargarResumenSucursales();
+  } catch (error) { Swal.fire({ icon: "error", title: "Error", text: error.message }); }
+}
+
 async function renombrarSucursal(idSucursal, nombreActual) { await editarSucursal(idSucursal); }
 
 async function editarSucursal(idSucursal) {
@@ -1604,21 +1676,21 @@ async function editarSucursal(idSucursal) {
     title: "✏️ Editar sucursal",
     html: `
       <div style="text-align:left;padding:0 4px">
+        <label style="display:block;font-size:.75rem;font-weight:700;color:#94a3b8;margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em">Zona</label>
+        <input id="editSucZona" type="number" class="swal2-input" placeholder="Ej: 1" value="${sucursal.zona || ""}" min="1" style="width:100%;margin:0 0 14px">
         <label style="display:block;font-size:.75rem;font-weight:700;color:#94a3b8;margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em">Número de sucursal</label>
-        <input id="editSucNumero" type="number" class="swal2-input" placeholder="Ej: 1, 329, 42..." value="${sucursal.numero || sucursal.nro || ""}" min="1" style="width:100%;margin:0 0 14px">
-        <label style="display:block;font-size:.75rem;font-weight:700;color:#94a3b8;margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em">Nombre de la sucursal</label>
-        <input id="editSucNombre" type="text" class="swal2-input" placeholder="Ej: Sucursal Norte" value="${sucursal.nombre || ""}" style="width:100%;margin:0 0 14px">
+        <input id="editSucNumero" type="number" class="swal2-input" placeholder="Ej: 402" value="${sucursal.numero || ""}" min="1" style="width:100%;margin:0 0 14px">
         <label style="display:block;font-size:.75rem;font-weight:700;color:#94a3b8;margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em">Dirección <span style="font-weight:400;text-transform:none">(opcional)</span></label>
         <input id="editSucDireccion" type="text" class="swal2-input" placeholder="Av. Corrientes 1234" value="${sucursal.direccion || ""}" style="width:100%;margin:0">
         <p style="font-size:.7rem;color:#64748b;margin-top:12px;padding:8px 10px;background:rgba(99,102,241,.08);border-radius:7px;border-left:3px solid #6366f1">⚠️ Cambiar el número de sucursal actualiza el identificador visible en todos los productos y reportes.</p>
       </div>`,
     showCancelButton: true, confirmButtonText: "Guardar cambios", cancelButtonText: "Cancelar", width: 480,
     preConfirm: () => {
-      const nombre = document.querySelector("#editSucNombre").value.trim();
+      const zona = document.querySelector("#editSucZona").value.trim();
       const numero = document.querySelector("#editSucNumero").value.trim();
       const direccion = document.querySelector("#editSucDireccion").value.trim();
-      if (!nombre) { Swal.showValidationMessage("El nombre es obligatorio"); return false; }
-      return { nombre, numero: numero ? Number(numero) : undefined, direccion };
+      if (!zona || !numero) { Swal.showValidationMessage("Zona y número son obligatorios"); return false; }
+      return { zona: Number(zona), numero: Number(numero), direccion };
     }
   });
   if (!resultado.isConfirmed) return;
@@ -1626,10 +1698,9 @@ async function editarSucursal(idSucursal) {
     const respuesta = await fetch(`${API_URL}/api/sucursales/${idSucursal}`, { method: "PUT", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify(resultado.value) });
     const data = await respuesta.json();
     if (!respuesta.ok) throw new Error(data.mensaje || "Error al editar sucursal");
-    const idx = sucursales.findIndex(s => s._id === idSucursal);
-    if (idx >= 0) { sucursales[idx].nombre = resultado.value.nombre; sucursales[idx].direccion = resultado.value.direccion; if (resultado.value.numero) sucursales[idx].numero = resultado.value.numero; }
-    const nroTexto = resultado.value.numero ? ` (N° ${resultado.value.numero})` : "";
-    Swal.fire({ icon: "success", title: "Sucursal actualizada", text: `"${resultado.value.nombre}"${nroTexto} guardada correctamente.`, timer: 2000, showConfirmButton: false });
+    sucursales = [];
+    await cargarSucursalesAPI();
+    Swal.fire({ icon: "success", title: "Sucursal actualizada", text: `"${data.sucursal.nombre}" guardada correctamente.`, timer: 2000, showConfirmButton: false });
     await cargarSucursalesAdmin(); await cargarUsuariosAdmin(); await cargarComparativoSucursales(); await cargarResumenSucursales(); crearSelectorSucursales();
   } catch (error) { Swal.fire({ icon: "error", title: "Error", text: error.message }); }
 }
