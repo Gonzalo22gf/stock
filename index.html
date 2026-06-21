@@ -14,6 +14,16 @@
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" defer></script>
   <script src="./js/main.js" defer></script>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236366f1'><path d='M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z'/></svg>">
+  <style>
+    .input-pass-wrap { position: relative; display: flex; align-items: center; }
+    .input-pass-wrap input { width: 100%; padding-right: 38px; }
+    .btn-toggle-pass {
+      position: absolute; right: 8px; background: none; border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; padding: 4px;
+      color: var(--text-4, #94a3b8); opacity: .8;
+    }
+    .btn-toggle-pass:hover { opacity: 1; }
+  </style>
 </head>
 <body>
 
@@ -192,7 +202,12 @@
             </div>
             <div class="form-field">
               <label>Contraseña</label>
-              <input type="password" id="loginPassword" placeholder="••••••••" required autocomplete="new-password">
+              <div class="input-pass-wrap">
+                <input type="password" id="loginPassword" placeholder="••••••••" required autocomplete="new-password">
+                <button type="button" class="btn-toggle-pass" data-target="loginPassword" aria-label="Mostrar contraseña">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </div>
             </div>
             <button type="submit" class="btn-login">Ingresar al sistema</button>
           </form>
@@ -210,7 +225,12 @@
               </div>
               <div class="form-field">
                 <label>Contraseña</label>
-                <input type="password" id="registroPassword" placeholder="••••••••" required autocomplete="new-password">
+                <div class="input-pass-wrap">
+                  <input type="password" id="registroPassword" placeholder="••••••••" required autocomplete="new-password">
+                  <button type="button" class="btn-toggle-pass" data-target="registroPassword" aria-label="Mostrar contraseña">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  </button>
+                </div>
               </div>
               <div class="form-field">
                 <label>Número de sucursal</label>

@@ -155,6 +155,7 @@ async function iniciarApp() {
   iniciarSidebarCollapse();
   iniciarNavSidebar();
   iniciarFAB();
+  iniciarTogglePassword();
 
   document.querySelector("#btnNuevaSucursal")?.addEventListener("click", crearSucursalNueva);
 
@@ -169,6 +170,21 @@ async function iniciarApp() {
   } else {
     mostrarAuth();
   }
+}
+
+function iniciarTogglePassword() {
+  document.querySelectorAll(".btn-toggle-pass").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const targetId = btn.dataset.target;
+      const input = document.getElementById(targetId);
+      if (!input) return;
+      const esOculta = input.type === "password";
+      input.type = esOculta ? "text" : "password";
+      btn.innerHTML = esOculta
+        ? `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`
+        : `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
+    });
+  });
 }
 
 function actualizarFechaTopbar() {
@@ -1511,9 +1527,25 @@ async function editarUsuarioAdmin(idUsuario, nombreActual, emailActual) {
         <label style="display:block;font-size:.75rem;font-weight:700;color:#94a3b8;margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em">Email</label>
         <input id="editUsrEmail" type="email" class="swal2-input" value="${emailActual}" style="width:100%;margin:0 0 14px">
         <label style="display:block;font-size:.75rem;font-weight:700;color:#94a3b8;margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em">Nueva contraseña <span style="font-weight:400;text-transform:none">(dejar vacío para no cambiarla)</span></label>
-        <input id="editUsrPassword" type="password" class="swal2-input" placeholder="••••••••" style="width:100%;margin:0">
+        <div style="position:relative;display:flex;align-items:center">
+          <input id="editUsrPassword" type="password" class="swal2-input" placeholder="••••••••" style="width:100%;margin:0;padding-right:38px">
+          <button type="button" id="btnToggleEditUsrPass" style="position:absolute;right:8px;background:none;border:none;cursor:pointer;display:flex;align-items:center;color:#94a3b8;padding:4px">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
       </div>`,
     showCancelButton: true, confirmButtonText: "Guardar cambios", cancelButtonText: "Cancelar", width: 460,
+    didOpen: () => {
+      const btnToggle = document.querySelector("#btnToggleEditUsrPass");
+      const input = document.querySelector("#editUsrPassword");
+      btnToggle?.addEventListener("click", () => {
+        const oculta = input.type === "password";
+        input.type = oculta ? "text" : "password";
+        btnToggle.innerHTML = oculta
+          ? `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`
+          : `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
+      });
+    },
     preConfirm: () => {
       const nombre = document.querySelector("#editUsrNombre").value.trim();
       const email = document.querySelector("#editUsrEmail").value.trim();
