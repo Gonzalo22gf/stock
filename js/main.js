@@ -1228,14 +1228,16 @@ function actualizarPanelPremium(listaProductos) {
     const estado = obtenerEstadoProducto(p.vencimiento);
     const estadoStock = obtenerEstadoStock(Number(p.stock || 0));
     let puntaje = 0;
-    if (estado.clase === "vencido") puntaje += 100;
-    if (estado.clase === "por-vencer") puntaje += 60;
-    if (estadoStock.clase === "agotado") puntaje += 50;
-    if (estadoStock.clase === "stock-critico") puntaje += 40;
-    if (estadoStock.clase === "stock-bajo") puntaje += 25;
+    const motivos = [];
+    if (estado.clase === "vencido") { puntaje += 100; motivos.push({ texto: "Vencido", pts: 100, color: "#dc2626" }); }
+    if (estado.clase === "por-vencer") { puntaje += 60; motivos.push({ texto: "Por vencer", pts: 60, color: "#f59e0b" }); }
+    if (estadoStock.clase === "agotado") { puntaje += 50; motivos.push({ texto: "Agotado", pts: 50, color: "#b91c1c" }); }
+    if (estadoStock.clase === "stock-critico") { puntaje += 40; motivos.push({ texto: "Stock crítico", pts: 40, color: "#9333ea" }); }
+    if (estadoStock.clase === "stock-bajo") { puntaje += 25; motivos.push({ texto: "Stock bajo", pts: 25, color: "#ca8a04" }); }
     const valor = Number(p.stock || 0) * Number(p.precio || 0);
     puntaje += Math.min(valor / 10000, 50);
-    return { ...p, puntaje, valor };
+    const motivoPrincipal = motivos.sort((a, b) => b.pts - a.pts)[0] || { texto: "En riesgo", color: "#64748b" };
+    return { ...p, puntaje, valor, motivoPrincipal };
   }).filter((p) => p.puntaje > 0).sort((a, b) => b.puntaje - a.puntaje).slice(0, 10);
   rankingRiesgo.innerHTML = "";
   if (productosRiesgosos.length === 0) { rankingRiesgo.innerHTML = `<p class="mensaje-vacio">No hay productos riesgosos.</p>`; return; }
@@ -1250,7 +1252,7 @@ function actualizarPanelPremium(listaProductos) {
         <div class="rank-name">${producto.nombre}</div>
         <div class="rank-sub">Lote: ${producto.lote || "Sin lote"} · Vence: ${formatearFecha(producto.vencimiento)}</div>
       </div>
-      <span class="rank-score">${Math.round(producto.puntaje)}</span>`;
+      <span class="rank-score" style="background:${producto.motivoPrincipal.color}1a;color:${producto.motivoPrincipal.color};font-size:.72rem;font-weight:700;padding:4px 10px;border-radius:999px;white-space:nowrap">${producto.motivoPrincipal.texto}</span>`;
     rankingRiesgo.appendChild(card);
   });
 }
